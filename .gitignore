@@ -1,0 +1,41 @@
+# Environment & Secrets
+Smart_Campus_Issue_Manager_Git_Workflow.md
+.env
+.env.local
+*.env
+!*.env.example
+
+# Binaries & Archives
+*.zip
+*.tar.gz
+*.rar
+
+# OS Generated
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+.DS_Store
+
+# IDE & Editors
+.idea/
+.vscode/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# Java / Spring Boot
+target/
+*.class
+.mvn/wrapper/maven-wrapper.jar
+*.jar
+*.war
+
+# Flutter / Dart
+.dart_tool/
+.flutter-plugins
+.flutter-plugins-dependencies
+.packages
+build/
