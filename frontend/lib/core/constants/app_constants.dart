@@ -1,6 +1,6 @@
 class AppConstants {
   static const String appName = 'Smart Campus Issue Manager';
-  static const String apiBaseUrl = 'http://localhost:8080/api/v1';
+  static const String apiBaseUrl = 'http://localhost:8081/api/v1';
 
   // API Endpoints
   static const String loginEndpoint = '/auth/login';
