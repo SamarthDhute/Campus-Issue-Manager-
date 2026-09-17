@@ -244,12 +244,29 @@ class _LoginScreenState extends State<LoginScreen> {
                           spacing: 8,
                           runSpacing: 8,
                           children: [
-                            _buildRoleChip('Student', 'student@smartcampus.edu'),
-                            _buildRoleChip('Operator', 'operator@smartcampus.edu'),
-                            _buildRoleChip('Team Lead', 'teamlead@smartcampus.edu'),
-                            _buildRoleChip('Manager', 'manager@smartcampus.edu'),
-                            _buildRoleChip('Admin', 'admin@smartcampus.edu'),
+                            _buildRoleChip('Student', 'student@smartcampus.edu', 'STUDENT'),
+                            _buildRoleChip('Operator', 'operator@smartcampus.edu', 'OPERATOR'),
+                            _buildRoleChip('Team Lead', 'teamlead@smartcampus.edu', 'TEAM_LEAD'),
+                            _buildRoleChip('Manager', 'manager@smartcampus.edu', 'MANAGER'),
+                            _buildRoleChip('Admin', 'admin@smartcampus.edu', 'ADMIN'),
                           ],
+                        ),
+                        const SizedBox(height: 14),
+                        OutlinedButton.icon(
+                          onPressed: () {
+                            final role = _getSelectedRole();
+                            context.read<AuthProvider>().loginAsDemoRole(role);
+                          },
+                          icon: const Icon(Icons.flash_on_rounded, size: 16, color: AppTheme.statusAmber),
+                          label: Text('Instant Preview (${_getSelectedRoleDisplay()} Workspace)'),
+                          style: OutlinedButton.styleFrom(
+                            foregroundColor: AppTheme.primaryBlue,
+                            side: const BorderSide(color: AppTheme.primaryBlue),
+                            minimumSize: const Size(double.infinity, 40),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                          ),
                         ),
                       ],
                     ),
@@ -263,7 +280,23 @@ class _LoginScreenState extends State<LoginScreen> {
     );
   }
 
-  Widget _buildRoleChip(String label, String email) {
+  String _getSelectedRole() {
+    if (_emailController.text.contains('operator')) return 'OPERATOR';
+    if (_emailController.text.contains('teamlead')) return 'TEAM_LEAD';
+    if (_emailController.text.contains('manager')) return 'MANAGER';
+    if (_emailController.text.contains('admin')) return 'ADMIN';
+    return 'STUDENT';
+  }
+
+  String _getSelectedRoleDisplay() {
+    if (_emailController.text.contains('operator')) return 'Operator';
+    if (_emailController.text.contains('teamlead')) return 'Team Lead';
+    if (_emailController.text.contains('manager')) return 'Manager';
+    if (_emailController.text.contains('admin')) return 'Admin';
+    return 'Student';
+  }
+
+  Widget _buildRoleChip(String label, String email, String role) {
     final isSelected = _emailController.text == email;
     return InkWell(
       onTap: () => _fillDemoCredentials(email),

@@ -41,45 +41,10 @@ class AppRootGate extends StatelessWidget {
   Widget build(BuildContext context) {
     final authProvider = context.watch<AuthProvider>();
 
-    switch (authProvider.status) {
-      case AuthStatus.uninitialized:
-      case AuthStatus.authenticating:
-        if (authProvider.user != null) {
-          // If already holding user, stay on dashboard while updating
-          return const DashboardShell();
-        }
-        return const Scaffold(
-          backgroundColor: AppTheme.backgroundLight,
-          body: Center(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                SizedBox(
-                  width: 32,
-                  height: 32,
-                  child: CircularProgressIndicator(
-                    strokeWidth: 3,
-                    valueColor: AlwaysStoppedAnimation<Color>(AppTheme.primaryBlue),
-                  ),
-                ),
-                SizedBox(height: 16),
-                Text(
-                  'Connecting to Smart Campus...',
-                  style: TextStyle(
-                    color: AppTheme.textMuted,
-                    fontSize: 14,
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        );
-      case AuthStatus.authenticated:
-        return const DashboardShell();
-      case AuthStatus.unauthenticated:
-      default:
-        return const LoginScreen();
+    if (authProvider.isAuthenticated) {
+      return const DashboardShell();
     }
+
+    return const LoginScreen();
   }
 }

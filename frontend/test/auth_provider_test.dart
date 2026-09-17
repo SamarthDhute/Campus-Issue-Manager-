@@ -4,9 +4,9 @@ import 'package:smart_campus_issue_manager/features/auth/state/auth_provider.dar
 
 void main() {
   group('AuthProvider State Tests', () {
-    test('Initial status should be uninitialized', () {
+    test('Initial status should be unauthenticated for immediate login view', () {
       final provider = AuthProvider();
-      expect(provider.status, AuthStatus.uninitialized);
+      expect(provider.status, AuthStatus.unauthenticated);
       expect(provider.user, isNull);
       expect(provider.isAuthenticated, isFalse);
     });

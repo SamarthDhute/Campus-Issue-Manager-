@@ -13,7 +13,7 @@ enum AuthStatus {
 class AuthProvider extends ChangeNotifier {
   final AuthRepository _authRepository;
 
-  AuthStatus _status = AuthStatus.uninitialized;
+  AuthStatus _status = AuthStatus.unauthenticated;
   AuthUserModel? _user;
   String? _errorMessage;
 
@@ -69,6 +69,53 @@ class AuthProvider extends ChangeNotifier {
       notifyListeners();
       return false;
     }
+  }
+
+  void loginAsDemoRole(String role) {
+    String name;
+    String email;
+    List<String> teams = [];
+
+    switch (role.toUpperCase()) {
+      case 'OPERATOR':
+        name = 'Vikram Singh';
+        email = 'operator@smartcampus.edu';
+        teams = ['Electrical Maintenance', 'Hostel Facilities'];
+        break;
+      case 'TEAM_LEAD':
+        name = 'Dr. Priya Sharma';
+        email = 'teamlead@smartcampus.edu';
+        teams = ['Campus Operations Lead'];
+        break;
+      case 'MANAGER':
+        name = 'Rajesh Verma';
+        email = 'manager@smartcampus.edu';
+        teams = ['Campus Executive Council'];
+        break;
+      case 'ADMIN':
+        name = 'System Administrator';
+        email = 'admin@smartcampus.edu';
+        teams = ['IT Infrastructure'];
+        break;
+      case 'STUDENT':
+      default:
+        name = 'Aarav Sharma';
+        email = 'student@smartcampus.edu';
+        teams = ['Hostel Block B'];
+        break;
+    }
+
+    _user = AuthUserModel(
+      id: 'demo-user-id',
+      email: email,
+      displayName: name,
+      role: role.toUpperCase(),
+      organizationName: 'Smart Campus University',
+      teams: teams,
+    );
+    _status = AuthStatus.authenticated;
+    _errorMessage = null;
+    notifyListeners();
   }
 
   void updateUser(AuthUserModel updatedUser) {
