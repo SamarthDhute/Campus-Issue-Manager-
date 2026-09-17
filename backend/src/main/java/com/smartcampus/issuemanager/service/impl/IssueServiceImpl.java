@@ -212,7 +212,8 @@ public class IssueServiceImpl implements IssueService {
 
         // Requester permissions
         if (actorRole == Role.STUDENT) {
-            if (current == IssueStatus.RESOLUTION_PROPOSED && (next == IssueStatus.CONFIRMED || next == IssueStatus.REOPENED)) {
+            if ((current == IssueStatus.RESOLUTION_PROPOSED || current == IssueStatus.RESOLVED_PENDING_CONFIRMATION) &&
+                (next == IssueStatus.CONFIRMED || next == IssueStatus.CLOSED || next == IssueStatus.REOPENED)) {
                 return;
             }
             if (next == IssueStatus.CANCELLED && current == IssueStatus.REPORTED) {
@@ -221,20 +222,20 @@ public class IssueServiceImpl implements IssueService {
             throw new BadRequestException("Students cannot transition issue status from " + current + " to " + next);
         }
 
-        // Staff permissions
-        // Allowed transitions map
+        // Staff permissions (Operator, Team Lead, Campus Manager, Admin)
         boolean valid = switch (current) {
-            case REPORTED -> next == IssueStatus.UNDERSTOOD || next == IssueStatus.ASSIGNED || next == IssueStatus.CANCELLED || next == IssueStatus.DUPLICATE || next == IssueStatus.WAITING_FOR_INFORMATION;
-            case UNDERSTOOD -> next == IssueStatus.ASSIGNED || next == IssueStatus.INVESTIGATED || next == IssueStatus.DUPLICATE || next == IssueStatus.WAITING_FOR_INFORMATION;
-            case ASSIGNED -> next == IssueStatus.INVESTIGATED || next == IssueStatus.ACTION_TAKEN || next == IssueStatus.ESCALATED || next == IssueStatus.WAITING_FOR_INFORMATION;
-            case INVESTIGATED -> next == IssueStatus.ACTION_TAKEN || next == IssueStatus.RESOLUTION_PROPOSED || next == IssueStatus.ESCALATED || next == IssueStatus.WAITING_FOR_INFORMATION;
-            case ACTION_TAKEN -> next == IssueStatus.RESOLUTION_PROPOSED || next == IssueStatus.INVESTIGATED || next == IssueStatus.ESCALATED;
-            case RESOLUTION_PROPOSED -> next == IssueStatus.CONFIRMED || next == IssueStatus.CLOSED || next == IssueStatus.REOPENED;
+            case REPORTED -> next == IssueStatus.UNDERSTOOD || next == IssueStatus.INVESTIGATING || next == IssueStatus.INVESTIGATED || next == IssueStatus.ASSIGNED || next == IssueStatus.CANCELLED || next == IssueStatus.DUPLICATE || next == IssueStatus.WAITING_FOR_INFORMATION;
+            case UNDERSTOOD -> next == IssueStatus.ASSIGNED || next == IssueStatus.INVESTIGATING || next == IssueStatus.INVESTIGATED || next == IssueStatus.DUPLICATE || next == IssueStatus.WAITING_FOR_INFORMATION;
+            case ASSIGNED -> next == IssueStatus.INVESTIGATING || next == IssueStatus.INVESTIGATED || next == IssueStatus.ACTION_SCHEDULED || next == IssueStatus.ACTION_IN_PROGRESS || next == IssueStatus.ACTION_TAKEN || next == IssueStatus.ESCALATED || next == IssueStatus.WAITING_FOR_INFORMATION;
+            case INVESTIGATING, INVESTIGATED -> next == IssueStatus.ACTION_SCHEDULED || next == IssueStatus.ACTION_IN_PROGRESS || next == IssueStatus.ACTION_TAKEN || next == IssueStatus.RESOLVED_PENDING_CONFIRMATION || next == IssueStatus.RESOLUTION_PROPOSED || next == IssueStatus.ESCALATED || next == IssueStatus.WAITING_FOR_INFORMATION;
+            case ACTION_SCHEDULED -> next == IssueStatus.ACTION_IN_PROGRESS || next == IssueStatus.ACTION_TAKEN || next == IssueStatus.INVESTIGATING || next == IssueStatus.INVESTIGATED || next == IssueStatus.ESCALATED;
+            case ACTION_IN_PROGRESS, ACTION_TAKEN -> next == IssueStatus.RESOLVED_PENDING_CONFIRMATION || next == IssueStatus.RESOLUTION_PROPOSED || next == IssueStatus.INVESTIGATING || next == IssueStatus.INVESTIGATED || next == IssueStatus.ESCALATED;
+            case RESOLVED_PENDING_CONFIRMATION, RESOLUTION_PROPOSED -> next == IssueStatus.CONFIRMED || next == IssueStatus.CLOSED || next == IssueStatus.REOPENED || next == IssueStatus.INVESTIGATING;
             case CONFIRMED -> next == IssueStatus.CLOSED || next == IssueStatus.REOPENED;
             case CLOSED -> next == IssueStatus.REOPENED;
-            case WAITING_FOR_INFORMATION -> next == IssueStatus.UNDERSTOOD || next == IssueStatus.INVESTIGATED || next == IssueStatus.ACTION_TAKEN;
-            case ESCALATED -> next == IssueStatus.ASSIGNED || next == IssueStatus.INVESTIGATED || next == IssueStatus.ACTION_TAKEN;
-            case REOPENED -> next == IssueStatus.ASSIGNED || next == IssueStatus.INVESTIGATED;
+            case WAITING_FOR_INFORMATION -> next == IssueStatus.UNDERSTOOD || next == IssueStatus.INVESTIGATING || next == IssueStatus.INVESTIGATED || next == IssueStatus.ACTION_IN_PROGRESS || next == IssueStatus.ACTION_TAKEN;
+            case ESCALATED -> next == IssueStatus.ASSIGNED || next == IssueStatus.INVESTIGATING || next == IssueStatus.INVESTIGATED || next == IssueStatus.ACTION_IN_PROGRESS || next == IssueStatus.ACTION_TAKEN;
+            case REOPENED -> next == IssueStatus.ASSIGNED || next == IssueStatus.INVESTIGATING || next == IssueStatus.INVESTIGATED;
             case CANCELLED, DUPLICATE -> false;
         };
 
