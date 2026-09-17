@@ -12,6 +12,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
 import java.util.UUID;
 
 @Service
@@ -43,5 +44,15 @@ public class UserServiceImpl implements UserService {
         log.info("User {} updated display name to: {}", user.getEmail(), updated.getDisplayName());
 
         return userMapper.toProfileResponse(updated);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<UserProfileResponse> getUsers(com.smartcampus.issuemanager.entity.Role role) {
+        List<User> users = userRepository.findAll();
+        if (role != null) {
+            users = users.stream().filter(u -> u.getRole() == role).toList();
+        }
+        return users.stream().map(userMapper::toProfileResponse).toList();
     }
 }

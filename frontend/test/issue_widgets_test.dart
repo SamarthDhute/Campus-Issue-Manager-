@@ -28,7 +28,7 @@ void main() {
         ),
       );
 
-      expect(find.text('INVESTIGATING'), findsOneWidget);
+      expect(find.text('Investigating'), findsOneWidget);
     });
 
     testWidgets('IssueCard renders issue summary and responds to tap', (tester) async {
