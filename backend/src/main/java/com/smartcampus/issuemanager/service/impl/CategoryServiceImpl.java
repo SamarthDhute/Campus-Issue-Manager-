@@ -26,7 +26,7 @@ public class CategoryServiceImpl implements CategoryService {
                         .id(c.getId())
                         .name(c.getName())
                         .description(c.getDescription())
-                        .active(c.isActive())
+                        .active(Boolean.TRUE.equals(c.getActive()))
                         .build())
                 .collect(Collectors.toList());
     }
