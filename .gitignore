@@ -11,6 +11,7 @@ Smart_Campus_Issue_Manager_Git_Workflow.md
 *.rar
 
 # OS Generated
+*.log
 Thumbs.db
 ehthumbs.db
 Desktop.ini
