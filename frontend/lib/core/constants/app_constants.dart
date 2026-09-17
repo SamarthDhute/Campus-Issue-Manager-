@@ -6,6 +6,7 @@ class AppConstants {
   static const String loginEndpoint = '/auth/login';
   static const String userProfileEndpoint = '/users/me';
   static const String healthEndpoint = '/health';
+  static const String notificationsEndpoint = '/notifications';
 
   // Roles
   static const String roleStudent = 'STUDENT';
