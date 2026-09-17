@@ -23,6 +23,7 @@ public class IssueServiceImpl implements IssueService {
     private final TeamRepository teamRepository;
     private final UserRepository userRepository;
     private final IssueTimelineEventRepository timelineEventRepository;
+    private final com.smartcampus.issuemanager.service.SlaService slaService;
 
     @Override
     @Transactional
@@ -46,6 +47,13 @@ public class IssueServiceImpl implements IssueService {
                 .build();
 
         Issue savedIssue = issueRepository.save(issue);
+
+        // Initialize SLA Tracking
+        try {
+            slaService.initializeIssueSla(savedIssue);
+        } catch (Exception e) {
+            // Log without failing creation
+        }
 
         // Record Initial Timeline Event
         IssueTimelineEvent timelineEvent = IssueTimelineEvent.builder()
@@ -114,6 +122,13 @@ public class IssueServiceImpl implements IssueService {
         IssueStatus oldStatus = issue.getStatus();
         issue.setStatus(request.getStatus());
         Issue updatedIssue = issueRepository.save(issue);
+
+        // Notify SLA service of status transition
+        try {
+            slaService.onIssueStatusChanged(updatedIssue, oldStatus, request.getStatus());
+        } catch (Exception e) {
+            // Non-blocking log
+        }
 
         String desc = "Status updated from " + oldStatus + " to " + request.getStatus();
         if (request.getComment() != null && !request.getComment().trim().isEmpty()) {
