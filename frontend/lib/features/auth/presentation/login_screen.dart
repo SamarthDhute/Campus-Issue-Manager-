@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../../../../core/constants/app_constants.dart';
-import '../../../../core/theme/app_theme.dart';
-import '../../../../core/widgets/custom_button.dart';
-import '../../../../core/widgets/custom_text_field.dart';
+import 'package:smart_campus_issue_manager/core/constants/app_constants.dart';
+import 'package:smart_campus_issue_manager/core/theme/app_theme.dart';
+import 'package:smart_campus_issue_manager/core/widgets/custom_button.dart';
+import 'package:smart_campus_issue_manager/core/widgets/custom_text_field.dart';
 import '../state/auth_provider.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -227,12 +227,14 @@ class _LoginScreenState extends State<LoginScreen> {
                           children: [
                             Icon(Icons.bolt_rounded, size: 18, color: AppTheme.statusAmber),
                             SizedBox(width: 6),
-                            Text(
-                              'Demo Credentials (Phase 1 Testing)',
-                              style: TextStyle(
-                                fontSize: 13,
-                                fontWeight: FontWeight.w600,
-                                color: AppTheme.textDark,
+                            Expanded(
+                              child: Text(
+                                'Demo Credentials (Phase 1 Testing)',
+                                style: TextStyle(
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.w600,
+                                  color: AppTheme.textDark,
+                                ),
                               ),
                             ),
                           ],

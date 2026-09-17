@@ -1,6 +1,6 @@
-import '../../../../core/constants/app_constants.dart';
-import '../../../../core/network/api_client.dart';
-import '../../../../core/storage/secure_storage_service.dart';
+import 'package:smart_campus_issue_manager/core/constants/app_constants.dart';
+import 'package:smart_campus_issue_manager/core/network/api_client.dart';
+import 'package:smart_campus_issue_manager/core/storage/secure_storage_service.dart';
 import '../models/auth_response.dart';
 import '../models/auth_user_model.dart';
 

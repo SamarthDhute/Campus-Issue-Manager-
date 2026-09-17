@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import '../../../../core/errors/app_exception.dart';
-import '../../../auth/data/models/auth_user_model.dart';
+import 'package:smart_campus_issue_manager/core/errors/app_exception.dart';
+import 'package:smart_campus_issue_manager/features/auth/data/models/auth_user_model.dart';
 import '../data/repositories/profile_repository.dart';
 
 class ProfileProvider extends ChangeNotifier {

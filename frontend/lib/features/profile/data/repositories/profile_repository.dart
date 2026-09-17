@@ -1,7 +1,7 @@
-import '../../../../core/constants/app_constants.dart';
-import '../../../../core/network/api_client.dart';
-import '../../../../core/storage/secure_storage_service.dart';
-import '../../../auth/data/models/auth_user_model.dart';
+import 'package:smart_campus_issue_manager/core/constants/app_constants.dart';
+import 'package:smart_campus_issue_manager/core/network/api_client.dart';
+import 'package:smart_campus_issue_manager/core/storage/secure_storage_service.dart';
+import 'package:smart_campus_issue_manager/features/auth/data/models/auth_user_model.dart';
 
 class ProfileRepository {
   final ApiClient _apiClient;

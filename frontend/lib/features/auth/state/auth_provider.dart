@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../../../../core/errors/app_exception.dart';
+import 'package:smart_campus_issue_manager/core/errors/app_exception.dart';
 import '../data/models/auth_user_model.dart';
 import '../data/repositories/auth_repository.dart';
 

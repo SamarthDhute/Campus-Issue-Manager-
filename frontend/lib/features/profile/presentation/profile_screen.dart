@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../../../../core/theme/app_theme.dart';
-import '../../../../core/widgets/custom_button.dart';
-import '../../../../core/widgets/custom_text_field.dart';
-import '../../../auth/state/auth_provider.dart';
-import '../../dashboard/presentation/widgets/role_badge.dart';
+import 'package:smart_campus_issue_manager/core/theme/app_theme.dart';
+import 'package:smart_campus_issue_manager/core/widgets/custom_button.dart';
+import 'package:smart_campus_issue_manager/core/widgets/custom_text_field.dart';
+import 'package:smart_campus_issue_manager/features/auth/state/auth_provider.dart';
+import 'package:smart_campus_issue_manager/features/dashboard/presentation/widgets/role_badge.dart';
 import '../state/profile_provider.dart';
 
 class ProfileScreen extends StatefulWidget {

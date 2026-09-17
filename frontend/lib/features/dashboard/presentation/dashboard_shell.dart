@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../../../../core/constants/app_constants.dart';
-import '../../../../core/theme/app_theme.dart';
-import '../../../auth/state/auth_provider.dart';
-import '../../../profile/presentation/profile_screen.dart';
+import 'package:smart_campus_issue_manager/core/constants/app_constants.dart';
+import 'package:smart_campus_issue_manager/core/theme/app_theme.dart';
+import 'package:smart_campus_issue_manager/features/auth/state/auth_provider.dart';
+import 'package:smart_campus_issue_manager/features/profile/presentation/profile_screen.dart';
 import 'views/lead_dashboard_view.dart';
 import 'views/manager_dashboard_view.dart';
 import 'views/operator_dashboard_view.dart';
