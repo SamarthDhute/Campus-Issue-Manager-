@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:smart_campus_issue_manager/core/theme/app_theme.dart';
-import 'package:smart_campus_issue_manager/features/auth/presentation/providers/auth_provider.dart';
+import 'package:smart_campus_issue_manager/features/auth/state/auth_provider.dart';
 import 'package:smart_campus_issue_manager/features/issues/data/models/ai_models.dart';
 import 'package:smart_campus_issue_manager/features/issues/data/models/issue_model.dart';
 import 'package:smart_campus_issue_manager/features/issues/state/ai_provider.dart';
@@ -392,7 +392,7 @@ class _AiCaseIntelligenceCardState extends State<AiCaseIntelligenceCard> {
                     final success = await context.read<AiProvider>().recordDecision(widget.issue.id, rec.id, 'ACCEPTED');
                     if (success && context.mounted) {
                       // Refresh issue details in IssueProvider to reflect new priority
-                      context.read<IssueProvider>().loadIssueById(widget.issue.id);
+                      context.read<IssueProvider>().loadIssueDetails(widget.issue.id);
                     }
                   },
                   icon: const Icon(Icons.check, size: 13, color: Colors.white),
