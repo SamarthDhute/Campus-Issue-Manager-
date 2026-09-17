@@ -239,7 +239,7 @@ public class IssueServiceImpl implements IssueService {
             case CANCELLED, DUPLICATE -> false;
         };
 
-        if (!valid && actorRole != Role.ADMIN && actorRole != Role.CAMPUS_MANAGER && actorRole != Role.MANAGER) {
+        if (!valid && actorRole != Role.ADMIN && actorRole != Role.MANAGER) {
             throw new BadRequestException("Invalid state transition from " + current + " to " + next);
         }
     }
