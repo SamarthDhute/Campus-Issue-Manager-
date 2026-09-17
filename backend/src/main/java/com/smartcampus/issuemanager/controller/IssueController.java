@@ -2,9 +2,10 @@ package com.smartcampus.issuemanager.controller;
 
 import com.smartcampus.issuemanager.dto.*;
 import com.smartcampus.issuemanager.entity.IssueStatus;
-import com.smartcampus.issuemanager.entity.User;
+import com.smartcampus.issuemanager.security.UserPrincipal;
 import com.smartcampus.issuemanager.service.IssueService;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -20,6 +21,7 @@ import java.util.UUID;
 @RequestMapping("/api/v1/issues")
 @RequiredArgsConstructor
 @Tag(name = "Issue Management", description = "Core Issue Lifecycle APIs")
+@SecurityRequirement(name = "bearerAuth")
 public class IssueController {
 
     private final IssueService issueService;
@@ -28,8 +30,8 @@ public class IssueController {
     @Operation(summary = "Create a new campus issue")
     public ResponseEntity<IssueResponse> createIssue(
             @Valid @RequestBody CreateIssueRequest request,
-            @AuthenticationPrincipal User currentUser) {
-        IssueResponse response = issueService.createIssue(request, currentUser);
+            @AuthenticationPrincipal UserPrincipal currentUser) {
+        IssueResponse response = issueService.createIssue(request, currentUser.getId());
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
@@ -40,8 +42,8 @@ public class IssueController {
             @RequestParam(required = false) UUID categoryId,
             @RequestParam(required = false) Boolean myIssues,
             @RequestParam(required = false) Boolean assignedToMe,
-            @AuthenticationPrincipal User currentUser) {
-        List<IssueResponse> issues = issueService.getIssues(status, categoryId, myIssues, assignedToMe, currentUser);
+            @AuthenticationPrincipal UserPrincipal currentUser) {
+        List<IssueResponse> issues = issueService.getIssues(status, categoryId, myIssues, assignedToMe, currentUser.getId());
         return ResponseEntity.ok(issues);
     }
 
@@ -49,8 +51,8 @@ public class IssueController {
     @Operation(summary = "Get issue details by ID")
     public ResponseEntity<IssueResponse> getIssueById(
             @PathVariable UUID id,
-            @AuthenticationPrincipal User currentUser) {
-        IssueResponse response = issueService.getIssueById(id, currentUser);
+            @AuthenticationPrincipal UserPrincipal currentUser) {
+        IssueResponse response = issueService.getIssueById(id, currentUser.getId());
         return ResponseEntity.ok(response);
     }
 
@@ -59,8 +61,8 @@ public class IssueController {
     public ResponseEntity<IssueResponse> updateStatus(
             @PathVariable UUID id,
             @Valid @RequestBody UpdateIssueStatusRequest request,
-            @AuthenticationPrincipal User currentUser) {
-        IssueResponse response = issueService.updateStatus(id, request, currentUser);
+            @AuthenticationPrincipal UserPrincipal currentUser) {
+        IssueResponse response = issueService.updateStatus(id, request, currentUser.getId());
         return ResponseEntity.ok(response);
     }
 
@@ -69,8 +71,8 @@ public class IssueController {
     public ResponseEntity<IssueResponse> assignIssue(
             @PathVariable UUID id,
             @RequestBody AssignIssueRequest request,
-            @AuthenticationPrincipal User currentUser) {
-        IssueResponse response = issueService.assignIssue(id, request, currentUser);
+            @AuthenticationPrincipal UserPrincipal currentUser) {
+        IssueResponse response = issueService.assignIssue(id, request, currentUser.getId());
         return ResponseEntity.ok(response);
     }
 
@@ -78,8 +80,8 @@ public class IssueController {
     @Operation(summary = "Get immutable timeline history of an issue")
     public ResponseEntity<List<TimelineEventResponse>> getIssueTimeline(
             @PathVariable UUID id,
-            @AuthenticationPrincipal User currentUser) {
-        List<TimelineEventResponse> timeline = issueService.getIssueTimeline(id, currentUser);
+            @AuthenticationPrincipal UserPrincipal currentUser) {
+        List<TimelineEventResponse> timeline = issueService.getIssueTimeline(id, currentUser.getId());
         return ResponseEntity.ok(timeline);
     }
 }

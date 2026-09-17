@@ -26,7 +26,9 @@ public class IssueServiceImpl implements IssueService {
 
     @Override
     @Transactional
-    public IssueResponse createIssue(CreateIssueRequest request, User currentUser) {
+    public IssueResponse createIssue(CreateIssueRequest request, UUID currentUserId) {
+        User currentUser = getUser(currentUserId);
+
         Category category = categoryRepository.findById(request.getCategoryId())
                 .orElseThrow(() -> new ResourceNotFoundException("Category not found with ID: " + request.getCategoryId()));
 
@@ -59,7 +61,8 @@ public class IssueServiceImpl implements IssueService {
 
     @Override
     @Transactional(readOnly = true)
-    public List<IssueResponse> getIssues(IssueStatus status, UUID categoryId, Boolean myIssues, Boolean assignedToMe, User currentUser) {
+    public List<IssueResponse> getIssues(IssueStatus status, UUID categoryId, Boolean myIssues, Boolean assignedToMe, UUID currentUserId) {
+        User currentUser = getUser(currentUserId);
         List<Issue> issues;
 
         if (currentUser.getRole() == Role.STUDENT || Boolean.TRUE.equals(myIssues)) {
@@ -86,7 +89,8 @@ public class IssueServiceImpl implements IssueService {
 
     @Override
     @Transactional(readOnly = true)
-    public IssueResponse getIssueById(UUID id, User currentUser) {
+    public IssueResponse getIssueById(UUID id, UUID currentUserId) {
+        User currentUser = getUser(currentUserId);
         Issue issue = issueRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Issue not found with ID: " + id));
 
@@ -100,7 +104,8 @@ public class IssueServiceImpl implements IssueService {
 
     @Override
     @Transactional
-    public IssueResponse updateStatus(UUID id, UpdateIssueStatusRequest request, User currentUser) {
+    public IssueResponse updateStatus(UUID id, UpdateIssueStatusRequest request, UUID currentUserId) {
+        User currentUser = getUser(currentUserId);
         Issue issue = issueRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Issue not found with ID: " + id));
 
@@ -128,7 +133,8 @@ public class IssueServiceImpl implements IssueService {
 
     @Override
     @Transactional
-    public IssueResponse assignIssue(UUID id, AssignIssueRequest request, User currentUser) {
+    public IssueResponse assignIssue(UUID id, AssignIssueRequest request, UUID currentUserId) {
+        User currentUser = getUser(currentUserId);
         Issue issue = issueRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Issue not found with ID: " + id));
 
@@ -180,14 +186,19 @@ public class IssueServiceImpl implements IssueService {
 
     @Override
     @Transactional(readOnly = true)
-    public List<TimelineEventResponse> getIssueTimeline(UUID id, User currentUser) {
+    public List<TimelineEventResponse> getIssueTimeline(UUID id, UUID currentUserId) {
         // verify issue existence and permissions
-        getIssueById(id, currentUser);
+        getIssueById(id, currentUserId);
 
         List<IssueTimelineEvent> events = timelineEventRepository.findByIssueIdOrderByCreatedAtDesc(id);
         return events.stream()
                 .map(this::mapTimelineEvent)
                 .collect(Collectors.toList());
+    }
+
+    private User getUser(UUID userId) {
+        return userRepository.findById(userId)
+                .orElseThrow(() -> new ResourceNotFoundException("User not found with ID: " + userId));
     }
 
     private synchronized String generateIssueNumber() {

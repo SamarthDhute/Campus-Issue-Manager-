@@ -19,11 +19,12 @@ class CategoryRepository {
     } catch (_) {
       // Fallback categories for resilient UI testing
       return [
-        CategoryModel(id: 'c1', name: 'Water & Plumbing', description: 'Leakage, taps, drainage, supply'),
-        CategoryModel(id: 'c2', name: 'Electrical & Power', description: 'Lights, fans, sockets, wiring'),
-        CategoryModel(id: 'c3', name: 'Hostel & Furniture', description: 'Beds, doors, windows, almirah'),
-        CategoryModel(id: 'c4', name: 'Network & IT Support', description: 'Wi-Fi, LAN, projector, smart board'),
-        CategoryModel(id: 'c5', name: 'Cleaning & Sanitation', description: 'Garbage, washroom cleaning, pest control'),
+        CategoryModel(id: 'c0000000-0000-0000-0000-000000000001', name: 'Electrical', description: 'Power cuts, faulty switches, broken wiring, lighting failures'),
+        CategoryModel(id: 'c0000000-0000-0000-0000-000000000002', name: 'Plumbing & Water', description: 'Water leakages, tap damages, washroom drainage issues'),
+        CategoryModel(id: 'c0000000-0000-0000-0000-000000000003', name: 'Internet & Wi-Fi', description: 'Network disconnections, weak Wi-Fi, router failures'),
+        CategoryModel(id: 'c0000000-0000-0000-0000-000000000004', name: 'Classroom Equipment', description: 'Projectors, microphones, smart podiums, broken seating'),
+        CategoryModel(id: 'c0000000-0000-0000-0000-000000000005', name: 'Hostel Amenities', description: 'Water coolers, lift maintenance, common room equipment'),
+        CategoryModel(id: 'c0000000-0000-0000-0000-000000000006', name: 'Cleanliness & Waste', description: 'Housekeeping, waste bins, campus sanitation'),
       ];
     }
   }
