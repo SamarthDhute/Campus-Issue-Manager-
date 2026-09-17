@@ -9,6 +9,7 @@ import 'features/profile/state/profile_provider.dart';
 
 import 'features/issues/state/category_provider.dart';
 import 'features/issues/state/issue_provider.dart';
+import 'features/issues/state/ai_provider.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
@@ -19,6 +20,7 @@ void main() {
         ChangeNotifierProvider(create: (_) => ProfileProvider()),
         ChangeNotifierProvider(create: (_) => CategoryProvider()),
         ChangeNotifierProvider(create: (_) => IssueProvider()),
+        ChangeNotifierProvider(create: (_) => AiProvider()),
       ],
       child: const SmartCampusApp(),
     ),

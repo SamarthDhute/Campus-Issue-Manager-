@@ -25,6 +25,12 @@ class AuthProvider extends ChangeNotifier {
   String? get errorMessage => _errorMessage;
   bool get isAuthenticated => _status == AuthStatus.authenticated && _user != null;
 
+  bool get isStudent => _user?.role.toUpperCase() == 'STUDENT' || _user?.role.toUpperCase() == 'REQUESTER';
+  bool get isOperator => _user?.role.toUpperCase() == 'OPERATOR' || _user?.role.toUpperCase() == 'FACULTY_STAFF' || _user?.role.toUpperCase() == 'STAFF';
+  bool get isTeamLead => _user?.role.toUpperCase() == 'TEAM_LEAD';
+  bool get isCampusManager => _user?.role.toUpperCase() == 'CAMPUS_MANAGER' || _user?.role.toUpperCase() == 'MANAGER';
+  bool get isAdmin => _user?.role.toUpperCase() == 'ADMIN';
+
   Future<void> checkAuthStatus() async {
     _status = AuthStatus.authenticating;
     notifyListeners();

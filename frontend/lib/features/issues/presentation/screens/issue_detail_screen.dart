@@ -5,6 +5,7 @@ import 'package:smart_campus_issue_manager/features/auth/state/auth_provider.dar
 import '../../data/models/issue_model.dart';
 import '../../data/models/timeline_event_model.dart';
 import '../../state/issue_provider.dart';
+import '../widgets/ai_case_intelligence_card.dart';
 import '../widgets/priority_chip.dart';
 import '../widgets/status_chip.dart';
 
@@ -220,6 +221,7 @@ class _IssueDetailScreenState extends State<IssueDetailScreen> {
                           children: [
                             _buildHeaderCard(issue),
                             const SizedBox(height: 16),
+                            AiCaseIntelligenceCard(issue: issue),
                             _buildActionToolbar(context, issue, userRole),
                             const SizedBox(height: 16),
                             _buildDetailsCard(issue),
