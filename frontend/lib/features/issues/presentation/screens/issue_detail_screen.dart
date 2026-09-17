@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:smart_campus_issue_manager/core/theme/app_colors.dart';
+import 'package:smart_campus_issue_manager/core/theme/app_theme.dart';
 import 'package:smart_campus_issue_manager/features/auth/state/auth_provider.dart';
 import '../../data/models/issue_model.dart';
 import '../../data/models/timeline_event_model.dart';
@@ -38,7 +38,7 @@ class _IssueDetailScreenState extends State<IssueDetailScreen> {
           children: [
             Text(
               'Update status from $currentStatus to $targetStatus?',
-              style: const TextStyle(fontSize: 14, color: AppColors.textSecondary),
+              style: const TextStyle(fontSize: 14, color: AppTheme.textMuted),
             ),
             const SizedBox(height: 16),
             TextField(
@@ -70,13 +70,13 @@ class _IssueDetailScreenState extends State<IssueDetailScreen> {
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
                       content: Text('Status updated to $targetStatus'),
-                      backgroundColor: AppColors.success,
+                      backgroundColor: AppTheme.statusGreen,
                     ),
                   );
                 } else {
                   final err = context.read<IssueProvider>().errorMessage ?? 'Failed to update status';
                   ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text(err), backgroundColor: AppColors.error),
+                    SnackBar(content: Text(err), backgroundColor: AppTheme.statusRed),
                   );
                 }
               }
@@ -150,13 +150,13 @@ class _IssueDetailScreenState extends State<IssueDetailScreen> {
                   ScaffoldMessenger.of(context).showSnackBar(
                     const SnackBar(
                       content: Text('Assignment updated successfully'),
-                      backgroundColor: AppColors.success,
+                      backgroundColor: AppTheme.statusGreen,
                     ),
                   );
                 } else {
                   final err = context.read<IssueProvider>().errorMessage ?? 'Failed to assign';
                   ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text(err), backgroundColor: AppColors.error),
+                    SnackBar(content: Text(err), backgroundColor: AppTheme.statusRed),
                   );
                 }
               }
@@ -193,11 +193,11 @@ class _IssueDetailScreenState extends State<IssueDetailScreen> {
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      const Icon(Icons.error_outline, size: 48, color: AppColors.error),
+                      const Icon(Icons.error_outline, size: 48, color: AppTheme.statusRed),
                       const SizedBox(height: 12),
                       Text(
                         issueProvider.errorMessage ?? 'Issue not found',
-                        style: const TextStyle(fontSize: 16, color: AppColors.textSecondary),
+                        style: const TextStyle(fontSize: 16, color: AppTheme.textMuted),
                       ),
                       const SizedBox(height: 16),
                       ElevatedButton(
@@ -255,7 +255,7 @@ class _IssueDetailScreenState extends State<IssueDetailScreen> {
                         style: const TextStyle(
                           fontSize: 14,
                           fontWeight: FontWeight.bold,
-                          color: AppColors.primary,
+                          color: AppTheme.primaryBlue,
                         ),
                       ),
                       const SizedBox(height: 4),
@@ -264,7 +264,7 @@ class _IssueDetailScreenState extends State<IssueDetailScreen> {
                         style: const TextStyle(
                           fontSize: 20,
                           fontWeight: FontWeight.bold,
-                          color: AppColors.textPrimary,
+                          color: AppTheme.textDark,
                         ),
                       ),
                     ],
@@ -283,7 +283,7 @@ class _IssueDetailScreenState extends State<IssueDetailScreen> {
             const SizedBox(height: 12),
             Text(
               issue.description,
-              style: const TextStyle(fontSize: 15, color: AppColors.textPrimary, height: 1.4),
+              style: const TextStyle(fontSize: 15, color: AppTheme.textDark, height: 1.4),
             ),
           ],
         ),
@@ -294,7 +294,6 @@ class _IssueDetailScreenState extends State<IssueDetailScreen> {
   Widget _buildActionToolbar(BuildContext context, IssueModel issue, String role) {
     final isOperator = role == 'OPERATOR' || role == 'FACULTY_STAFF' || role == 'STAFF';
     final isLeadOrManager = role == 'TEAM_LEAD' || role == 'CAMPUS_MANAGER' || role == 'ADMIN';
-    final isRequester = role == 'STUDENT' || role == 'REQUESTER';
 
     final buttons = <Widget>[];
 
@@ -304,7 +303,7 @@ class _IssueDetailScreenState extends State<IssueDetailScreen> {
         ElevatedButton.icon(
           icon: const Icon(Icons.search, size: 18),
           label: const Text('Start Investigation'),
-          style: ElevatedButton.styleFrom(backgroundColor: AppColors.secondary),
+          style: ElevatedButton.styleFrom(backgroundColor: AppTheme.primaryIndigo),
           onPressed: () => _showStatusUpdateDialog(context, issue.status, 'INVESTIGATING', 'Begin Investigation'),
         ),
       );
@@ -313,7 +312,7 @@ class _IssueDetailScreenState extends State<IssueDetailScreen> {
         ElevatedButton.icon(
           icon: const Icon(Icons.search, size: 18),
           label: const Text('Start Investigation'),
-          style: ElevatedButton.styleFrom(backgroundColor: AppColors.secondary),
+          style: ElevatedButton.styleFrom(backgroundColor: AppTheme.primaryIndigo),
           onPressed: () => _showStatusUpdateDialog(context, issue.status, 'INVESTIGATING', 'Begin Investigation'),
         ),
       );
@@ -330,7 +329,7 @@ class _IssueDetailScreenState extends State<IssueDetailScreen> {
         ElevatedButton.icon(
           icon: const Icon(Icons.build_circle, size: 18),
           label: const Text('Start Work'),
-          style: ElevatedButton.styleFrom(backgroundColor: AppColors.primary),
+          style: ElevatedButton.styleFrom(backgroundColor: AppTheme.primaryBlue),
           onPressed: () => _showStatusUpdateDialog(context, issue.status, 'ACTION_IN_PROGRESS', 'Start Field Work'),
         ),
       );
@@ -339,7 +338,7 @@ class _IssueDetailScreenState extends State<IssueDetailScreen> {
         ElevatedButton.icon(
           icon: const Icon(Icons.play_arrow, size: 18),
           label: const Text('Start Work'),
-          style: ElevatedButton.styleFrom(backgroundColor: AppColors.primary),
+          style: ElevatedButton.styleFrom(backgroundColor: AppTheme.primaryBlue),
           onPressed: () => _showStatusUpdateDialog(context, issue.status, 'ACTION_IN_PROGRESS', 'Start Field Work'),
         ),
       );
@@ -348,7 +347,7 @@ class _IssueDetailScreenState extends State<IssueDetailScreen> {
         ElevatedButton.icon(
           icon: const Icon(Icons.check_circle_outline, size: 18),
           label: const Text('Propose Resolution'),
-          style: ElevatedButton.styleFrom(backgroundColor: AppColors.success),
+          style: ElevatedButton.styleFrom(backgroundColor: AppTheme.statusGreen),
           onPressed: () => _showStatusUpdateDialog(context, issue.status, 'RESOLVED_PENDING_CONFIRMATION', 'Propose Resolution'),
         ),
       );
@@ -360,7 +359,7 @@ class _IssueDetailScreenState extends State<IssueDetailScreen> {
         ElevatedButton.icon(
           icon: const Icon(Icons.verified, size: 18),
           label: const Text('Confirm Resolution & Close'),
-          style: ElevatedButton.styleFrom(backgroundColor: AppColors.success),
+          style: ElevatedButton.styleFrom(backgroundColor: AppTheme.statusGreen),
           onPressed: () => _showStatusUpdateDialog(context, issue.status, 'CLOSED', 'Confirm Resolution'),
         ),
       );
@@ -368,7 +367,7 @@ class _IssueDetailScreenState extends State<IssueDetailScreen> {
         OutlinedButton.icon(
           icon: const Icon(Icons.replay, size: 18),
           label: const Text('Reopen Issue'),
-          style: OutlinedButton.styleFrom(foregroundColor: AppColors.error),
+          style: OutlinedButton.styleFrom(foregroundColor: AppTheme.statusRed),
           onPressed: () => _showStatusUpdateDialog(context, issue.status, 'REOPENED', 'Reopen Issue'),
         ),
       );
@@ -377,7 +376,7 @@ class _IssueDetailScreenState extends State<IssueDetailScreen> {
         OutlinedButton.icon(
           icon: const Icon(Icons.replay, size: 18),
           label: const Text('Reopen Issue'),
-          style: OutlinedButton.styleFrom(foregroundColor: AppColors.error),
+          style: OutlinedButton.styleFrom(foregroundColor: AppTheme.statusRed),
           onPressed: () => _showStatusUpdateDialog(context, issue.status, 'REOPENED', 'Reopen Issue'),
         ),
       );
@@ -428,7 +427,7 @@ class _IssueDetailScreenState extends State<IssueDetailScreen> {
           children: [
             const Text(
               'Case Information',
-              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: AppColors.textPrimary),
+              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: AppTheme.textDark),
             ),
             const Divider(height: 24),
             _buildDetailRow(Icons.place_outlined, 'Location', issue.location),
@@ -464,19 +463,19 @@ class _IssueDetailScreenState extends State<IssueDetailScreen> {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Icon(icon, size: 18, color: AppColors.textSecondary),
+        const Icon(Icons.circle, size: 8, color: AppTheme.textMuted),
         const SizedBox(width: 8),
         SizedBox(
           width: 140,
           child: Text(
             label,
-            style: const TextStyle(fontSize: 14, color: AppColors.textSecondary, fontWeight: FontWeight.w500),
+            style: const TextStyle(fontSize: 14, color: AppTheme.textMuted, fontWeight: FontWeight.w500),
           ),
         ),
         Expanded(
           child: Text(
             value,
-            style: const TextStyle(fontSize: 14, color: AppColors.textPrimary, fontWeight: FontWeight.w600),
+            style: const TextStyle(fontSize: 14, color: AppTheme.textDark, fontWeight: FontWeight.w600),
           ),
         ),
       ],
@@ -492,11 +491,11 @@ class _IssueDetailScreenState extends State<IssueDetailScreen> {
           children: [
             const Text(
               'Activity & Lifecycle Timeline',
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: AppColors.textPrimary),
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: AppTheme.textDark),
             ),
             Text(
               '${timeline.length} event${timeline.length == 1 ? '' : 's'}',
-              style: const TextStyle(fontSize: 14, color: AppColors.textSecondary),
+              style: const TextStyle(fontSize: 14, color: AppTheme.textMuted),
             ),
           ],
         ),
@@ -538,7 +537,7 @@ class _IssueDetailScreenState extends State<IssueDetailScreen> {
                   width: 12,
                   height: 12,
                   decoration: const BoxDecoration(
-                    color: AppColors.primary,
+                    color: AppTheme.primaryBlue,
                     shape: BoxShape.circle,
                   ),
                 ),
@@ -575,19 +574,19 @@ class _IssueDetailScreenState extends State<IssueDetailScreen> {
                             style: const TextStyle(
                               fontSize: 13,
                               fontWeight: FontWeight.bold,
-                              color: AppColors.textPrimary,
+                              color: AppTheme.textDark,
                             ),
                           ),
                           Text(
                             '${event.createdAt.toLocal().hour}:${event.createdAt.toLocal().minute.toString().padLeft(2, '0')} · ${event.createdAt.toLocal().day}/${event.createdAt.toLocal().month}/${event.createdAt.toLocal().year}',
-                            style: const TextStyle(fontSize: 11, color: AppColors.textSecondary),
+                            style: const TextStyle(fontSize: 11, color: AppTheme.textMuted),
                           ),
                         ],
                       ),
                       const SizedBox(height: 4),
                       Text(
                         event.description,
-                        style: const TextStyle(fontSize: 13, color: AppColors.textPrimary),
+                        style: const TextStyle(fontSize: 13, color: AppTheme.textDark),
                       ),
                     ],
                   ),
