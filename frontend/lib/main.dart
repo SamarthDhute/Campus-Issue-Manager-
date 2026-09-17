@@ -7,6 +7,9 @@ import 'features/auth/state/auth_provider.dart';
 import 'features/dashboard/presentation/dashboard_shell.dart';
 import 'features/profile/state/profile_provider.dart';
 
+import 'features/issues/state/category_provider.dart';
+import 'features/issues/state/issue_provider.dart';
+
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
   runApp(
@@ -14,6 +17,8 @@ void main() {
       providers: [
         ChangeNotifierProvider(create: (_) => AuthProvider()..checkAuthStatus()),
         ChangeNotifierProvider(create: (_) => ProfileProvider()),
+        ChangeNotifierProvider(create: (_) => CategoryProvider()),
+        ChangeNotifierProvider(create: (_) => IssueProvider()),
       ],
       child: const SmartCampusApp(),
     ),

@@ -79,6 +79,34 @@ class ApiClient {
     }
   }
 
+  Future<dynamic> patch(String endpoint, Map<String, dynamic> body) async {
+    try {
+      final uri = Uri.parse('${AppConstants.apiBaseUrl}$endpoint');
+      final headers = await _buildHeaders();
+      final response = await _client.patch(
+        uri,
+        headers: headers,
+        body: jsonEncode(body),
+      );
+      return _handleResponse(response);
+    } catch (e) {
+      if (e is AppException) rethrow;
+      throw AppException(message: 'Connection failed: Unable to reach backend server ($e)');
+    }
+  }
+
+  Future<dynamic> delete(String endpoint) async {
+    try {
+      final uri = Uri.parse('${AppConstants.apiBaseUrl}$endpoint');
+      final headers = await _buildHeaders();
+      final response = await _client.delete(uri, headers: headers);
+      return _handleResponse(response);
+    } catch (e) {
+      if (e is AppException) rethrow;
+      throw AppException(message: 'Connection failed: Unable to reach backend server ($e)');
+    }
+  }
+
   dynamic _handleResponse(http.Response response) {
     dynamic responseBody;
     if (response.body.isNotEmpty) {
