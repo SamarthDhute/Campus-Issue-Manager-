@@ -38,4 +38,13 @@ public class UserController {
         UserProfileResponse updatedProfile = userService.updateCurrentUserProfile(currentUser.getId(), request);
         return ResponseEntity.ok(updatedProfile);
     }
+
+    @GetMapping
+    @Operation(summary = "List users optionally filtered by role", description = "Returns users matching the given role (e.g. OPERATOR, TEAM_LEAD)")
+    public ResponseEntity<java.util.List<UserProfileResponse>> getUsers(
+        @RequestParam(required = false) com.smartcampus.issuemanager.entity.Role role
+    ) {
+        java.util.List<UserProfileResponse> users = userService.getUsers(role);
+        return ResponseEntity.ok(users);
+    }
 }
