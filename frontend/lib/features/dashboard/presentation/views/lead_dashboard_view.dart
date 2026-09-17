@@ -23,38 +23,72 @@ class LeadDashboardView extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 12),
-          const Row(
-            children: [
-              Expanded(
-                child: StatsCard(
-                  title: 'Team Workload',
-                  value: '0',
-                  icon: Icons.groups_outlined,
-                  color: AppTheme.primaryBlue,
-                  subtitle: 'Total team cases',
-                ),
-              ),
-              SizedBox(width: 12),
-              Expanded(
-                child: StatsCard(
-                  title: 'SLA Risks',
-                  value: '0',
-                  icon: Icons.warning_amber_rounded,
-                  color: AppTheme.statusRed,
-                  subtitle: 'Near breach',
-                ),
-              ),
-              SizedBox(width: 12),
-              Expanded(
-                child: StatsCard(
-                  title: 'Unassigned',
-                  value: '0',
-                  icon: Icons.person_search_rounded,
-                  color: AppTheme.statusAmber,
-                  subtitle: 'Needs routing',
-                ),
-              ),
-            ],
+          LayoutBuilder(
+            builder: (context, constraints) {
+              final isNarrow = constraints.maxWidth < 600;
+              if (isNarrow) {
+                return const Column(
+                  children: [
+                    StatsCard(
+                      title: 'Team Workload',
+                      value: '0',
+                      icon: Icons.groups_outlined,
+                      color: AppTheme.primaryBlue,
+                      subtitle: 'Total team cases',
+                    ),
+                    SizedBox(height: 12),
+                    StatsCard(
+                      title: 'SLA Risks',
+                      value: '0',
+                      icon: Icons.warning_amber_rounded,
+                      color: AppTheme.statusRed,
+                      subtitle: 'Near breach',
+                    ),
+                    SizedBox(height: 12),
+                    StatsCard(
+                      title: 'Unassigned',
+                      value: '0',
+                      icon: Icons.person_search_rounded,
+                      color: AppTheme.statusAmber,
+                      subtitle: 'Needs routing',
+                    ),
+                  ],
+                );
+              }
+              return const Row(
+                children: [
+                  Expanded(
+                    child: StatsCard(
+                      title: 'Team Workload',
+                      value: '0',
+                      icon: Icons.groups_outlined,
+                      color: AppTheme.primaryBlue,
+                      subtitle: 'Total team cases',
+                    ),
+                  ),
+                  SizedBox(width: 12),
+                  Expanded(
+                    child: StatsCard(
+                      title: 'SLA Risks',
+                      value: '0',
+                      icon: Icons.warning_amber_rounded,
+                      color: AppTheme.statusRed,
+                      subtitle: 'Near breach',
+                    ),
+                  ),
+                  SizedBox(width: 12),
+                  Expanded(
+                    child: StatsCard(
+                      title: 'Unassigned',
+                      value: '0',
+                      icon: Icons.person_search_rounded,
+                      color: AppTheme.statusAmber,
+                      subtitle: 'Needs routing',
+                    ),
+                  ),
+                ],
+              );
+            },
           ),
           const SizedBox(height: 24),
 

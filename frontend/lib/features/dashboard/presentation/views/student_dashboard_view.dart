@@ -15,6 +15,7 @@ class StudentDashboardView extends StatelessWidget {
         children: [
           // Greeting & Action Banner
           Container(
+            width: double.infinity,
             padding: const EdgeInsets.all(20),
             decoration: BoxDecoration(
               gradient: const LinearGradient(
@@ -23,33 +24,40 @@ class StudentDashboardView extends StatelessWidget {
                 end: Alignment.bottomRight,
               ),
               borderRadius: BorderRadius.circular(16),
+              boxShadow: [
+                BoxShadow(
+                  color: AppTheme.primaryBlue.withValues(alpha: 0.2),
+                  blurRadius: 10,
+                  offset: const Offset(0, 4),
+                ),
+              ],
             ),
-            child: Row(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Text(
-                        'Report a Campus Issue',
-                        style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.white,
-                        ),
+                const Row(
+                  children: [
+                    Icon(Icons.school_rounded, color: Colors.white, size: 24),
+                    SizedBox(width: 10),
+                    Text(
+                      'Welcome to Student Portal',
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
                       ),
-                      const SizedBox(height: 6),
-                      Text(
-                        'Notice water leakage, electrical problems, or facility issues? Report instantly with AI assistance in Phase 2.',
-                        style: TextStyle(
-                          fontSize: 13,
-                          color: Colors.white.withValues(alpha: 0.9),
-                        ),
-                      ),
-                    ],
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  'Report maintenance, electrical, hostel, or IT issues across campus. Track real-time progress and AI updates.',
+                  style: TextStyle(
+                    fontSize: 13,
+                    color: Colors.white.withValues(alpha: 0.9),
                   ),
                 ),
-                const SizedBox(width: 16),
+                const SizedBox(height: 16),
                 ElevatedButton.icon(
                   onPressed: () {
                     ScaffoldMessenger.of(context).showSnackBar(
@@ -60,12 +68,15 @@ class StudentDashboardView extends StatelessWidget {
                     );
                   },
                   icon: const Icon(Icons.add_circle_outline, size: 18),
-                  label: const Text('New Issue'),
+                  label: const Text('Report New Issue'),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.white,
                     foregroundColor: AppTheme.primaryBlue,
                     elevation: 0,
-                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                    padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 12),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
                   ),
                 ),
               ],

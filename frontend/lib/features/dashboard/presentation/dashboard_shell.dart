@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:smart_campus_issue_manager/core/constants/app_constants.dart';
 import 'package:smart_campus_issue_manager/core/theme/app_theme.dart';
+import 'package:smart_campus_issue_manager/features/auth/data/models/auth_user_model.dart';
 import 'package:smart_campus_issue_manager/features/auth/state/auth_provider.dart';
 import 'package:smart_campus_issue_manager/features/profile/presentation/profile_screen.dart';
 import 'views/lead_dashboard_view.dart';
@@ -38,13 +39,15 @@ class _DashboardShellState extends State<DashboardShell> {
   @override
   Widget build(BuildContext context) {
     final authProvider = context.watch<AuthProvider>();
-    final user = authProvider.user;
-
-    if (user == null) {
-      return const Scaffold(
-        body: Center(child: CircularProgressIndicator()),
-      );
-    }
+    final user = authProvider.user ??
+        AuthUserModel(
+          id: 'demo-student-id',
+          email: 'student@smartcampus.edu',
+          displayName: 'Aarav Sharma',
+          role: 'STUDENT',
+          organizationName: 'Smart Campus University',
+          teams: ['Hostel Block B'],
+        );
 
     final pages = [
       _buildRoleHome(user.role),

@@ -23,38 +23,72 @@ class ManagerDashboardView extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 12),
-          const Row(
-            children: [
-              Expanded(
-                child: StatsCard(
-                  title: 'Total Issues',
-                  value: '0',
-                  icon: Icons.analytics_outlined,
-                  color: AppTheme.primaryBlue,
-                  subtitle: 'All-time volume',
-                ),
-              ),
-              SizedBox(width: 12),
-              Expanded(
-                child: StatsCard(
-                  title: 'SLA Compliance',
-                  value: '100%',
-                  icon: Icons.speed_rounded,
-                  color: AppTheme.statusGreen,
-                  subtitle: 'Target: >95%',
-                ),
-              ),
-              SizedBox(width: 12),
-              Expanded(
-                child: StatsCard(
-                  title: 'Active Teams',
-                  value: '3',
-                  icon: Icons.apartment_rounded,
-                  color: AppTheme.primaryIndigo,
-                  subtitle: 'Campus departments',
-                ),
-              ),
-            ],
+          LayoutBuilder(
+            builder: (context, constraints) {
+              final isNarrow = constraints.maxWidth < 600;
+              if (isNarrow) {
+                return const Column(
+                  children: [
+                    StatsCard(
+                      title: 'Total Issues',
+                      value: '0',
+                      icon: Icons.analytics_outlined,
+                      color: AppTheme.primaryBlue,
+                      subtitle: 'All-time volume',
+                    ),
+                    SizedBox(height: 12),
+                    StatsCard(
+                      title: 'SLA Compliance',
+                      value: '100%',
+                      icon: Icons.speed_rounded,
+                      color: AppTheme.statusGreen,
+                      subtitle: 'Target: >95%',
+                    ),
+                    SizedBox(height: 12),
+                    StatsCard(
+                      title: 'Active Teams',
+                      value: '3',
+                      icon: Icons.apartment_rounded,
+                      color: AppTheme.primaryIndigo,
+                      subtitle: 'Campus departments',
+                    ),
+                  ],
+                );
+              }
+              return const Row(
+                children: [
+                  Expanded(
+                    child: StatsCard(
+                      title: 'Total Issues',
+                      value: '0',
+                      icon: Icons.analytics_outlined,
+                      color: AppTheme.primaryBlue,
+                      subtitle: 'All-time volume',
+                    ),
+                  ),
+                  SizedBox(width: 12),
+                  Expanded(
+                    child: StatsCard(
+                      title: 'SLA Compliance',
+                      value: '100%',
+                      icon: Icons.speed_rounded,
+                      color: AppTheme.statusGreen,
+                      subtitle: 'Target: >95%',
+                    ),
+                  ),
+                  SizedBox(width: 12),
+                  Expanded(
+                    child: StatsCard(
+                      title: 'Active Teams',
+                      value: '3',
+                      icon: Icons.apartment_rounded,
+                      color: AppTheme.primaryIndigo,
+                      subtitle: 'Campus departments',
+                    ),
+                  ),
+                ],
+              );
+            },
           ),
           const SizedBox(height: 24),
 

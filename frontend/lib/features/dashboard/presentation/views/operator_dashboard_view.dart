@@ -23,38 +23,72 @@ class OperatorDashboardView extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 12),
-          const Row(
-            children: [
-              Expanded(
-                child: StatsCard(
-                  title: 'Assigned to Me',
-                  value: '0',
-                  icon: Icons.assignment_ind_outlined,
-                  color: AppTheme.primaryIndigo,
-                  subtitle: 'Needs action',
-                ),
-              ),
-              SizedBox(width: 12),
-              Expanded(
-                child: StatsCard(
-                  title: 'In Progress',
-                  value: '0',
-                  icon: Icons.build_circle_outlined,
-                  color: AppTheme.statusAmber,
-                  subtitle: 'Investigation active',
-                ),
-              ),
-              SizedBox(width: 12),
-              Expanded(
-                child: StatsCard(
-                  title: 'Resolved Today',
-                  value: '0',
-                  icon: Icons.task_alt_rounded,
-                  color: AppTheme.statusGreen,
-                  subtitle: 'Completed',
-                ),
-              ),
-            ],
+          LayoutBuilder(
+            builder: (context, constraints) {
+              final isNarrow = constraints.maxWidth < 600;
+              if (isNarrow) {
+                return const Column(
+                  children: [
+                    StatsCard(
+                      title: 'Assigned to Me',
+                      value: '0',
+                      icon: Icons.assignment_ind_outlined,
+                      color: AppTheme.primaryIndigo,
+                      subtitle: 'Needs action',
+                    ),
+                    SizedBox(height: 12),
+                    StatsCard(
+                      title: 'In Progress',
+                      value: '0',
+                      icon: Icons.build_circle_outlined,
+                      color: AppTheme.statusAmber,
+                      subtitle: 'Investigation active',
+                    ),
+                    SizedBox(height: 12),
+                    StatsCard(
+                      title: 'Resolved Today',
+                      value: '0',
+                      icon: Icons.task_alt_rounded,
+                      color: AppTheme.statusGreen,
+                      subtitle: 'Completed',
+                    ),
+                  ],
+                );
+              }
+              return const Row(
+                children: [
+                  Expanded(
+                    child: StatsCard(
+                      title: 'Assigned to Me',
+                      value: '0',
+                      icon: Icons.assignment_ind_outlined,
+                      color: AppTheme.primaryIndigo,
+                      subtitle: 'Needs action',
+                    ),
+                  ),
+                  SizedBox(width: 12),
+                  Expanded(
+                    child: StatsCard(
+                      title: 'In Progress',
+                      value: '0',
+                      icon: Icons.build_circle_outlined,
+                      color: AppTheme.statusAmber,
+                      subtitle: 'Investigation active',
+                    ),
+                  ),
+                  SizedBox(width: 12),
+                  Expanded(
+                    child: StatsCard(
+                      title: 'Resolved Today',
+                      value: '0',
+                      icon: Icons.task_alt_rounded,
+                      color: AppTheme.statusGreen,
+                      subtitle: 'Completed',
+                    ),
+                  ),
+                ],
+              );
+            },
           ),
           const SizedBox(height: 24),
 
