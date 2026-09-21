@@ -78,7 +78,7 @@ class _ManualEscalateModalState extends State<ManualEscalateModal> {
     return Dialog(
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       child: ConstrainedBox(
-        constraints: const Box64(maxWidth: 480),
+        constraints: const BoxConstraints(maxWidth: 480),
         child: Padding(
           padding: const EdgeInsets.all(24.0),
           child: Column(

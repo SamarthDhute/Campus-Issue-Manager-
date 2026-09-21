@@ -19,7 +19,7 @@ class EscalationBannerWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     final slaProvider = context.watch<SlaProvider>();
     final authProvider = context.watch<AuthProvider>();
-    final isStaff = authProvider.isOperator || authProvider.isTeamLead || authProvider.isManager || authProvider.isAdmin;
+    final isStaff = authProvider.isOperator || authProvider.isTeamLead || authProvider.isCampusManager || authProvider.isAdmin;
 
     final openEscalations = slaProvider.escalations.where((e) => e.status == 'OPEN').toList();
 
