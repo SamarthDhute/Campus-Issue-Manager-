@@ -113,7 +113,7 @@ class NotificationsDrawer extends StatelessWidget {
                   : notifications.isEmpty
                       ? Center(
                           child: Column(
-                            mainAxisAlignment: MainTestAxisAlignment.center,
+                            mainAxisAlignment: MainAxisAlignment.center,
                             children: [
                               Icon(Icons.notifications_off_outlined, size: 48, color: AppTheme.textMuted.withOpacity(0.5)),
                               const SizedBox(height: 12),

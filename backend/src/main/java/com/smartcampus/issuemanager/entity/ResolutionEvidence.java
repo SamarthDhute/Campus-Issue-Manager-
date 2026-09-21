@@ -8,13 +8,13 @@ import java.time.OffsetDateTime;
 import java.util.UUID;
 
 @Entity
-@Table(name = "issue_attachments")
+@Table(name = "resolution_evidence")
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class IssueAttachment {
+public class ResolutionEvidence {
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
@@ -25,27 +25,27 @@ public class IssueAttachment {
     private Issue issue;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "message_id")
-    private IssueMessage message;
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "uploaded_by_user_id")
+    @JoinColumn(name = "uploaded_by_user_id", nullable = false)
     private User uploadedBy;
 
-    @Column(name = "storage_path", nullable = false, length = 512)
-    private String storagePath;
+    @Enumerated(EnumType.STRING)
+    @Column(name = "evidence_type", nullable = false, length = 50)
+    private EvidenceType evidenceType;
+
+    @Column(name = "file_url", nullable = false, length = 1000)
+    private String fileUrl;
 
     @Column(name = "file_name", nullable = false)
     private String fileName;
 
-    @Column(name = "content_type", nullable = false, length = 128)
-    private String contentType;
+    @Column(name = "file_size")
+    private Long fileSize;
 
-    @Column(name = "size_bytes", nullable = false)
-    private Long sizeBytes;
+    @Column(name = "mime_type", length = 100)
+    private String mimeType;
 
-    @Column(name = "thumbnail_url", length = 1000)
-    private String thumbnailUrl;
+    @Column(name = "notes", columnDefinition = "TEXT")
+    private String notes;
 
     @CreationTimestamp
     @Column(name = "created_at", updatable = false)

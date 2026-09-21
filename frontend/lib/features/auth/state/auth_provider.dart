@@ -22,6 +22,7 @@ class AuthProvider extends ChangeNotifier {
 
   AuthStatus get status => _status;
   AuthUserModel? get user => _user;
+  AuthUserModel? get currentUser => _user;
   String? get errorMessage => _errorMessage;
   bool get isAuthenticated => _status == AuthStatus.authenticated && _user != null;
 
