@@ -116,6 +116,43 @@ class ResolutionProvider extends ChangeNotifier {
     }
   }
 
+  Future<EvidenceModel?> uploadEvidenceWithFile({
+    required String issueId,
+    required EvidenceType evidenceType,
+    required List<int> fileBytes,
+    required String fileName,
+    String? notes,
+  }) async {
+    _isUploading = true;
+    _errorMessage = null;
+    notifyListeners();
+
+    try {
+      final attachment = await _attachmentRepository.uploadAttachment(
+        issueId: issueId,
+        fileBytes: fileBytes,
+        fileName: fileName,
+      );
+      final uploaded = await _resolutionRepository.uploadEvidence(
+        issueId: issueId,
+        evidenceType: evidenceType,
+        fileUrl: attachment.fileUrl,
+        fileName: attachment.fileName,
+        fileSize: attachment.sizeBytes,
+        mimeType: attachment.contentType,
+        notes: notes,
+      );
+      _evidenceList.insert(0, uploaded);
+      return uploaded;
+    } catch (e) {
+      _errorMessage = e.toString();
+      return null;
+    } finally {
+      _isUploading = false;
+      notifyListeners();
+    }
+  }
+
   Future<bool> submitFeedback({
     required String issueId,
     required int rating,

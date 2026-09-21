@@ -40,3 +40,8 @@ target/
 .flutter-plugins-dependencies
 .packages
 build/
+
+# Uploads & Media
+uploads/
+backend/uploads/
+

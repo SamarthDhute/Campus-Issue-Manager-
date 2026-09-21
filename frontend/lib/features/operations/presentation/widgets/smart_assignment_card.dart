@@ -8,8 +8,13 @@ import 'package:smart_campus_issue_manager/features/operations/state/operations_
 
 class SmartAssignmentCard extends StatefulWidget {
   final IssueModel issue;
+  final VoidCallback? onDispatched;
 
-  const SmartAssignmentCard({super.key, required this.issue});
+  const SmartAssignmentCard({
+    super.key,
+    required this.issue,
+    this.onDispatched,
+  });
 
   @override
   State<SmartAssignmentCard> createState() => _SmartAssignmentCardState();
@@ -257,6 +262,7 @@ class _SmartAssignmentCardState extends State<SmartAssignmentCard> {
                                   backgroundColor: AppTheme.statusGreen,
                                 ),
                               );
+                              widget.onDispatched?.call();
                             }
                           },
                     icon: provider.isAssigning

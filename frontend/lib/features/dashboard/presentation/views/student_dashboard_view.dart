@@ -16,6 +16,8 @@ class StudentDashboardView extends StatefulWidget {
 }
 
 class _StudentDashboardViewState extends State<StudentDashboardView> {
+  String _selectedFilter = 'ALL'; // 'ALL', 'ACTIVE', 'RESOLVED'
+
   @override
   void initState() {
     super.initState();
@@ -27,9 +29,19 @@ class _StudentDashboardViewState extends State<StudentDashboardView> {
   @override
   Widget build(BuildContext context) {
     final issueProvider = context.watch<IssueProvider>();
-    final issues = issueProvider.issues;
-    final activeCount = issues.where((i) => i.status != 'CLOSED' && i.status != 'RESOLVED_PENDING_CONFIRMATION').length;
-    final resolvedCount = issues.where((i) => i.status == 'CLOSED' || i.status == 'RESOLVED_PENDING_CONFIRMATION').length;
+    final allIssues = issueProvider.issues;
+    final activeCount = allIssues.where((i) => i.status != 'CLOSED' && i.status != 'RESOLVED_PENDING_CONFIRMATION').length;
+    final resolvedCount = allIssues.where((i) => i.status == 'CLOSED' || i.status == 'RESOLVED_PENDING_CONFIRMATION').length;
+
+    final filteredIssues = allIssues.where((i) {
+      if (_selectedFilter == 'ACTIVE') {
+        return i.status != 'CLOSED' && i.status != 'RESOLVED_PENDING_CONFIRMATION';
+      }
+      if (_selectedFilter == 'RESOLVED') {
+        return i.status == 'CLOSED' || i.status == 'RESOLVED_PENDING_CONFIRMATION';
+      }
+      return true;
+    }).toList();
 
     return RefreshIndicator(
       onRefresh: () => context.read<IssueProvider>().loadIssues(myIssues: true),
@@ -52,7 +64,7 @@ class _StudentDashboardViewState extends State<StudentDashboardView> {
                 borderRadius: BorderRadius.circular(16),
                 boxShadow: [
                   BoxShadow(
-                    color: AppTheme.primaryBlue.withValues(alpha: 0.2),
+                    color: AppTheme.primaryBlue.withOpacity(0.2),
                     blurRadius: 10,
                     offset: const Offset(0, 4),
                   ),
@@ -80,7 +92,7 @@ class _StudentDashboardViewState extends State<StudentDashboardView> {
                     'Report maintenance, electrical, hostel, or IT issues across campus. Track real-time progress and timeline updates.',
                     style: TextStyle(
                       fontSize: 13,
-                      color: Colors.white.withValues(alpha: 0.9),
+                      color: Colors.white.withOpacity(0.9),
                     ),
                   ),
                   const SizedBox(height: 16),
@@ -126,7 +138,9 @@ class _StudentDashboardViewState extends State<StudentDashboardView> {
                     value: '$activeCount',
                     icon: Icons.pending_actions_rounded,
                     color: AppTheme.statusAmber,
-                    subtitle: 'Pending resolution',
+                    subtitle: 'Click to filter',
+                    isSelected: _selectedFilter == 'ACTIVE',
+                    onTap: () => setState(() => _selectedFilter = _selectedFilter == 'ACTIVE' ? 'ALL' : 'ACTIVE'),
                   ),
                 ),
                 const SizedBox(width: 12),
@@ -136,7 +150,9 @@ class _StudentDashboardViewState extends State<StudentDashboardView> {
                     value: '$resolvedCount',
                     icon: Icons.check_circle_outline_rounded,
                     color: AppTheme.statusGreen,
-                    subtitle: 'Confirmed fixes',
+                    subtitle: 'Click to filter',
+                    isSelected: _selectedFilter == 'RESOLVED',
+                    onTap: () => setState(() => _selectedFilter = _selectedFilter == 'RESOLVED' ? 'ALL' : 'RESOLVED'),
                   ),
                 ),
               ],
@@ -147,30 +163,34 @@ class _StudentDashboardViewState extends State<StudentDashboardView> {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                const Text(
-                  'Recent Submissions',
-                  style: TextStyle(
+                Text(
+                  _selectedFilter == 'ALL'
+                      ? 'Recent Submissions'
+                      : _selectedFilter == 'ACTIVE'
+                          ? 'Active Submissions'
+                          : 'Resolved Submissions',
+                  style: const TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.bold,
                     color: AppTheme.textDark,
                   ),
                 ),
-                if (issues.isNotEmpty)
+                if (filteredIssues.isNotEmpty)
                   Text(
-                    '${issues.length} total',
+                    '${filteredIssues.length} total',
                     style: const TextStyle(fontSize: 13, color: AppTheme.textMuted),
                   ),
               ],
             ),
             const SizedBox(height: 12),
-            if (issueProvider.isLoading && issues.isEmpty)
+            if (issueProvider.isLoading && allIssues.isEmpty)
               const Center(
                 child: Padding(
                   padding: EdgeInsets.all(32.0),
                   child: CircularProgressIndicator(),
                 ),
               )
-            else if (issues.isEmpty)
+            else if (filteredIssues.isEmpty)
               Container(
                 padding: const EdgeInsets.symmetric(vertical: 32),
                 decoration: BoxDecoration(
@@ -178,20 +198,33 @@ class _StudentDashboardViewState extends State<StudentDashboardView> {
                   borderRadius: BorderRadius.circular(12),
                   border: Border.all(color: AppTheme.borderSubtle),
                 ),
-                child: const EmptyStateView(
-                  title: 'No Issues Reported Yet',
-                  description: 'When you submit issues around campus, their live tracking and timeline updates will appear here.',
+                child: EmptyStateView(
+                  title: _selectedFilter == 'ALL' ? 'No Issues Reported Yet' : 'No matching issues',
+                  description: _selectedFilter == 'ALL'
+                      ? 'Tap "Report New Issue" above to submit your first campus issue.'
+                      : 'No issues match the selected filter.',
                   icon: Icons.assignment_outlined,
+                  action: _selectedFilter == 'ALL'
+                      ? ElevatedButton(
+                          onPressed: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(builder: (_) => const CreateIssueScreen()),
+                            );
+                          },
+                          child: const Text('Create Issue'),
+                        )
+                      : null,
                 ),
               )
             else
               ListView.separated(
                 shrinkWrap: true,
                 physics: const NeverScrollableScrollPhysics(),
-                itemCount: issues.length,
+                itemCount: filteredIssues.length,
                 separatorBuilder: (context, index) => const SizedBox(height: 12),
                 itemBuilder: (context, index) {
-                  final issue = issues[index];
+                  final issue = filteredIssues[index];
                   return IssueCard(
                     issue: issue,
                     onTap: () {

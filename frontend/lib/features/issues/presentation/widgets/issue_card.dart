@@ -16,28 +16,29 @@ class IssueCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final dateStr = '${issue.createdAt.day}/${issue.createdAt.month}/${issue.createdAt.year}';
+    final dateStr = '${issue.createdAt.day.toString().padLeft(2, '0')}/${issue.createdAt.month.toString().padLeft(2, '0')}/${issue.createdAt.year}';
 
-    return Container(
-      margin: const EdgeInsets.only(bottom: 12),
-      decoration: BoxDecoration(
-        color: AppTheme.surfaceWhite,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: AppTheme.borderSubtle),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.02),
-            blurRadius: 6,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      child: Material(
-        color: Colors.transparent,
-        borderRadius: BorderRadius.circular(12),
+    return Material(
+      color: Colors.transparent,
+      child: Ink(
+        decoration: BoxDecoration(
+          color: AppTheme.surfaceWhite,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: AppTheme.borderSubtle),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.03),
+              blurRadius: 6,
+              offset: const Offset(0, 2),
+            ),
+          ],
+        ),
         child: InkWell(
           onTap: onTap,
           borderRadius: BorderRadius.circular(12),
+          mouseCursor: SystemMouseCursors.click,
+          hoverColor: AppTheme.primaryBlue.withOpacity(0.06),
+          splashColor: AppTheme.primaryBlue.withOpacity(0.12),
           child: Padding(
             padding: const EdgeInsets.all(16),
             child: Column(
@@ -98,10 +99,14 @@ class IssueCard extends StatelessWidget {
                 ),
                 const SizedBox(height: 8),
 
-                // Location & Details
+                // Bottom row: location, reporter/date
                 Row(
                   children: [
-                    const Icon(Icons.location_on_outlined, size: 14, color: AppTheme.textMuted),
+                    const Icon(
+                      Icons.location_on_outlined,
+                      size: 14,
+                      color: AppTheme.textMuted,
+                    ),
                     const SizedBox(width: 4),
                     Expanded(
                       child: Text(

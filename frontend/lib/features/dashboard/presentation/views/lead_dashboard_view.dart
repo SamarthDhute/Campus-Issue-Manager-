@@ -15,6 +15,8 @@ class LeadDashboardView extends StatefulWidget {
 }
 
 class _LeadDashboardViewState extends State<LeadDashboardView> {
+  String _selectedFilter = 'ALL'; // 'ALL', 'SLA_RISK', 'UNASSIGNED'
+
   @override
   void initState() {
     super.initState();
@@ -26,13 +28,24 @@ class _LeadDashboardViewState extends State<LeadDashboardView> {
   @override
   Widget build(BuildContext context) {
     final issueProvider = context.watch<IssueProvider>();
-    final issues = issueProvider.issues;
+    final allIssues = issueProvider.issues;
 
-    final totalCount = issues.length;
-    final slaRiskCount = issues.where((i) =>
+    final totalCount = allIssues.length;
+    final slaRiskCount = allIssues.where((i) =>
         (i.priority == 'HIGH' || i.priority == 'CRITICAL') &&
         (i.status != 'CLOSED' && i.status != 'RESOLVED_PENDING_CONFIRMATION')).length;
-    final unassignedCount = issues.where((i) => i.assignedUserId == null || i.assignedTeamId == null).length;
+    final unassignedCount = allIssues.where((i) => i.assignedUserId == null || i.assignedTeamId == null).length;
+
+    final filteredIssues = allIssues.where((i) {
+      if (_selectedFilter == 'SLA_RISK') {
+        return (i.priority == 'HIGH' || i.priority == 'CRITICAL') &&
+            (i.status != 'CLOSED' && i.status != 'RESOLVED_PENDING_CONFIRMATION');
+      }
+      if (_selectedFilter == 'UNASSIGNED') {
+        return i.assignedUserId == null || i.assignedTeamId == null;
+      }
+      return true;
+    }).toList();
 
     return RefreshIndicator(
       onRefresh: () => context.read<IssueProvider>().loadIssues(),
@@ -61,7 +74,9 @@ class _LeadDashboardViewState extends State<LeadDashboardView> {
                     value: '$totalCount',
                     icon: Icons.groups_outlined,
                     color: AppTheme.primaryBlue,
-                    subtitle: 'Total cases',
+                    subtitle: 'Click to view all',
+                    isSelected: _selectedFilter == 'ALL',
+                    onTap: () => setState(() => _selectedFilter = 'ALL'),
                   ),
                   const SizedBox(height: 12, width: 12),
                   StatsCard(
@@ -69,7 +84,9 @@ class _LeadDashboardViewState extends State<LeadDashboardView> {
                     value: '$slaRiskCount',
                     icon: Icons.warning_amber_rounded,
                     color: AppTheme.statusRed,
-                    subtitle: 'High / Critical pending',
+                    subtitle: 'Click to filter',
+                    isSelected: _selectedFilter == 'SLA_RISK',
+                    onTap: () => setState(() => _selectedFilter = 'SLA_RISK'),
                   ),
                   const SizedBox(height: 12, width: 12),
                   StatsCard(
@@ -77,7 +94,9 @@ class _LeadDashboardViewState extends State<LeadDashboardView> {
                     value: '$unassignedCount',
                     icon: Icons.person_search_rounded,
                     color: AppTheme.statusAmber,
-                    subtitle: 'Needs routing',
+                    subtitle: 'Click to filter',
+                    isSelected: _selectedFilter == 'UNASSIGNED',
+                    onTap: () => setState(() => _selectedFilter = 'UNASSIGNED'),
                   ),
                 ];
 
@@ -101,30 +120,34 @@ class _LeadDashboardViewState extends State<LeadDashboardView> {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                const Text(
-                  'Team Queue & Escalations',
-                  style: TextStyle(
+                Text(
+                  _selectedFilter == 'ALL'
+                      ? 'Team Queue & Escalations'
+                      : _selectedFilter == 'SLA_RISK'
+                          ? 'High Risk / Escalated Queue'
+                          : 'Unassigned Routing Queue',
+                  style: const TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.bold,
                     color: AppTheme.textDark,
                   ),
                 ),
-                if (issues.isNotEmpty)
+                if (filteredIssues.isNotEmpty)
                   Text(
-                    '${issues.length} cases',
+                    '${filteredIssues.length} cases',
                     style: const TextStyle(fontSize: 13, color: AppTheme.textMuted),
                   ),
               ],
             ),
             const SizedBox(height: 12),
-            if (issueProvider.isLoading && issues.isEmpty)
+            if (issueProvider.isLoading && allIssues.isEmpty)
               const Center(
                 child: Padding(
                   padding: EdgeInsets.all(32.0),
                   child: CircularProgressIndicator(),
                 ),
               )
-            else if (issues.isEmpty)
+            else if (filteredIssues.isEmpty)
               Container(
                 padding: const EdgeInsets.symmetric(vertical: 32),
                 decoration: BoxDecoration(
@@ -132,9 +155,11 @@ class _LeadDashboardViewState extends State<LeadDashboardView> {
                   borderRadius: BorderRadius.circular(12),
                   border: Border.all(color: AppTheme.borderSubtle),
                 ),
-                child: const EmptyStateView(
-                  title: 'No Active Issues',
-                  description: 'Team operations are clear. All campus cases have been resolved.',
+                child: EmptyStateView(
+                  title: _selectedFilter == 'ALL' ? 'No Active Issues' : 'No matching cases',
+                  description: _selectedFilter == 'ALL'
+                      ? 'Team operations are clear. All campus cases have been resolved.'
+                      : 'No issues match the selected filter.',
                   icon: Icons.shield_outlined,
                 ),
               )
@@ -142,10 +167,10 @@ class _LeadDashboardViewState extends State<LeadDashboardView> {
               ListView.separated(
                 shrinkWrap: true,
                 physics: const NeverScrollableScrollPhysics(),
-                itemCount: issues.length,
+                itemCount: filteredIssues.length,
                 separatorBuilder: (context, index) => const SizedBox(height: 12),
                 itemBuilder: (context, index) {
-                  final issue = issues[index];
+                  final issue = filteredIssues[index];
                   return IssueCard(
                     issue: issue,
                     onTap: () {

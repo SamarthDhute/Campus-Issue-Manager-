@@ -32,7 +32,7 @@ class IssueDetailScreen extends StatefulWidget {
 }
 
 class _IssueDetailScreenState extends State<IssueDetailScreen> with SingleTickerProviderStateMixin {
-  int _selectedTabIndex = 0;
+  String _selectedTabKey = 'overview';
 
   @override
   void initState() {
@@ -104,6 +104,71 @@ class _IssueDetailScreenState extends State<IssueDetailScreen> with SingleTicker
             child: const Text('Confirm'),
           ),
         ],
+      ),
+    );
+  }
+
+  void _showSmartDispatchModal(BuildContext context, IssueModel issue) {
+    context.read<OperationsProvider>().fetchRecommendation(issue.id);
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (bottomSheetCtx) => DraggableScrollableSheet(
+        initialChildSize: 0.8,
+        minChildSize: 0.5,
+        maxChildSize: 0.95,
+        builder: (_, scrollController) => Container(
+          decoration: const BoxDecoration(
+            color: AppTheme.surfaceWhite,
+            borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+          ),
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+          child: ListView(
+            controller: scrollController,
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(8),
+                        decoration: BoxDecoration(
+                          gradient: const LinearGradient(
+                            colors: [AppTheme.primaryBlue, AppTheme.primaryIndigo],
+                          ),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: const Icon(Icons.bolt_rounded, color: Colors.white, size: 22),
+                      ),
+                      const SizedBox(width: 12),
+                      const Text(
+                        'Smart Dispatch Engine',
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                          color: AppTheme.textDark,
+                        ),
+                      ),
+                    ],
+                  ),
+                  IconButton(
+                    icon: const Icon(Icons.close),
+                    onPressed: () => Navigator.pop(bottomSheetCtx),
+                  ),
+                ],
+              ),
+              const Divider(height: 24),
+              SmartAssignmentCard(
+                issue: issue,
+                onDispatched: () {
+                  Navigator.pop(bottomSheetCtx);
+                },
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }
@@ -194,6 +259,7 @@ class _IssueDetailScreenState extends State<IssueDetailScreen> with SingleTicker
     final authProvider = context.watch<AuthProvider>();
     final userRole = authProvider.user?.role.toUpperCase() ?? 'STUDENT';
     final issue = issueProvider.selectedIssue;
+    final availableTabs = _getAvailableTabs(userRole);
 
     return Scaffold(
       appBar: AppBar(
@@ -246,7 +312,7 @@ class _IssueDetailScreenState extends State<IssueDetailScreen> with SingleTicker
                           children: [
                             _buildHeaderCard(issue),
                             const SizedBox(height: 16),
-                            _buildSegmentedTabNav(userRole != 'STUDENT'),
+                            _buildSegmentedTabNav(availableTabs),
                             const SizedBox(height: 16),
                             _buildActiveTabContent(issue, userRole),
                           ],
@@ -258,13 +324,23 @@ class _IssueDetailScreenState extends State<IssueDetailScreen> with SingleTicker
     );
   }
 
-  Widget _buildSegmentedTabNav(bool isStaff) {
-    final tabs = [
-      {'label': 'Overview & AI', 'icon': Icons.insights_rounded},
-      {'label': 'Tasks & Field Ops', 'icon': Icons.assignment_turned_in_rounded},
-      if (isStaff) {'label': 'Staff Notes', 'icon': Icons.lock_clock_rounded},
-      {'label': 'Chat & Comms', 'icon': Icons.forum_rounded},
+  List<Map<String, dynamic>> _getAvailableTabs(String role) {
+    final isStaff = role != 'STUDENT';
+
+    return [
+      {'key': 'overview', 'label': 'Overview', 'icon': Icons.description_outlined},
+      {'key': 'tasks', 'label': 'Tasks & Evidence', 'icon': Icons.assignment_turned_in_rounded},
+      {'key': 'sla', 'label': 'SLA & Risks', 'icon': Icons.timer_outlined},
+      if (isStaff) {'key': 'ai', 'label': 'AI Insights', 'icon': Icons.insights_rounded},
+      if (isStaff) {'key': 'notes', 'label': 'Staff Notes', 'icon': Icons.lock_clock_rounded},
+      {'key': 'chat', 'label': 'Chat & Comms', 'icon': Icons.forum_rounded},
     ];
+  }
+
+  Widget _buildSegmentedTabNav(List<Map<String, dynamic>> tabs) {
+    if (!tabs.any((t) => t['key'] == _selectedTabKey)) {
+      _selectedTabKey = tabs.first['key'] as String;
+    }
 
     return Container(
       padding: const EdgeInsets.all(4),
@@ -275,13 +351,15 @@ class _IssueDetailScreenState extends State<IssueDetailScreen> with SingleTicker
       child: SingleChildScrollView(
         scrollDirection: Axis.horizontal,
         child: Row(
-          children: List.generate(tabs.length, (index) {
-            final isSelected = _selectedTabIndex == index;
+          children: tabs.map((tab) {
+            final tabKey = tab['key'] as String;
+            final isSelected = _selectedTabKey == tabKey;
             return Padding(
               padding: const EdgeInsets.symmetric(horizontal: 2.0),
               child: InkWell(
-                onTap: () => setState(() => _selectedTabIndex = index),
+                onTap: () => setState(() => _selectedTabKey = tabKey),
                 borderRadius: BorderRadius.circular(8),
+                mouseCursor: SystemMouseCursors.click,
                 child: Container(
                   padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
                   decoration: BoxDecoration(
@@ -292,13 +370,13 @@ class _IssueDetailScreenState extends State<IssueDetailScreen> with SingleTicker
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       Icon(
-                        tabs[index]['icon'] as IconData,
+                        tab['icon'] as IconData,
                         size: 16,
                         color: isSelected ? Colors.white : AppTheme.textDark,
                       ),
                       const SizedBox(width: 6),
                       Text(
-                        tabs[index]['label'] as String,
+                        tab['label'] as String,
                         style: TextStyle(
                           fontSize: 13,
                           fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
@@ -310,63 +388,92 @@ class _IssueDetailScreenState extends State<IssueDetailScreen> with SingleTicker
                 ),
               ),
             );
-          }),
+          }).toList(),
         ),
       ),
     );
   }
 
   Widget _buildActiveTabContent(IssueModel issue, String userRole) {
-    final isStaff = userRole != 'STUDENT';
+    final isStudent = userRole == 'STUDENT';
+    final isStaff = !isStudent;
+    final isLeadOrManager = userRole == 'TEAM_LEAD' || userRole == 'CAMPUS_MANAGER' || userRole == 'MANAGER' || userRole == 'ADMIN';
 
-    // Tab mapping
-    if (_selectedTabIndex == 0) {
-      return Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          ResolutionVerificationCard(issue: issue),
-          const SizedBox(height: 12),
-          EscalationBannerWidget(issueId: issue.id, issueNumber: issue.issueNumber),
-          SlaCountdownCard(issueId: issue.id),
-          RiskSignalsCard(issueId: issue.id),
-          const SizedBox(height: 16),
-          ResolutionEvidenceWidget(issueId: issue.id, canUpload: isStaff),
-          const SizedBox(height: 16),
-          AiCaseIntelligenceCard(issue: issue),
-          _buildActionToolbar(context, issue, userRole),
-          const SizedBox(height: 16),
-          _buildDetailsCard(issue),
-          const SizedBox(height: 24),
-          _buildTimelineSection(issue.timeline),
-        ],
-      );
-    } else if (_selectedTabIndex == 1) {
-      return Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          if (userRole == 'TEAM_LEAD' || userRole == 'CAMPUS_MANAGER' || userRole == 'MANAGER' || userRole == 'ADMIN')
-            SmartAssignmentCard(issue: issue),
-          TasksChecklistWidget(issue: issue, isStaff: isStaff),
-          const SizedBox(height: 12),
-          InvestigationLogWidget(issue: issue, isStaff: isStaff),
-          const SizedBox(height: 12),
-          ResolutionEvidenceWidget(issueId: issue.id, canUpload: isStaff),
-        ],
-      );
-    } else if (_selectedTabIndex == 2 && isStaff) {
-      return Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          InternalNotesWidget(issue: issue),
-        ],
-      );
-    } else {
-      return Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          RequesterChatWidget(issue: issue),
-        ],
-      );
+    switch (_selectedTabKey) {
+      case 'tasks':
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            if (isLeadOrManager) ...[
+              SmartAssignmentCard(issue: issue),
+              const SizedBox(height: 16),
+            ],
+            TasksChecklistWidget(issue: issue, isStaff: isStaff),
+            const SizedBox(height: 16),
+            if (isStaff) ...[
+              InvestigationLogWidget(issue: issue, isStaff: isStaff),
+              const SizedBox(height: 16),
+            ],
+            ResolutionEvidenceWidget(issueId: issue.id, canUpload: isStaff),
+          ],
+        );
+
+      case 'sla':
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            EscalationBannerWidget(issueId: issue.id, issueNumber: issue.issueNumber),
+            const SizedBox(height: 12),
+            SlaCountdownCard(issueId: issue.id),
+            if (isStaff) ...[
+              const SizedBox(height: 12),
+              RiskSignalsCard(issueId: issue.id),
+            ],
+          ],
+        );
+
+      case 'ai':
+        return isStaff
+            ? Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  AiCaseIntelligenceCard(issue: issue),
+                ],
+              )
+            : const SizedBox.shrink();
+
+      case 'notes':
+        return isStaff
+            ? Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  InternalNotesWidget(issue: issue),
+                ],
+              )
+            : const SizedBox.shrink();
+
+      case 'chat':
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            RequesterChatWidget(issue: issue),
+          ],
+        );
+
+      case 'overview':
+      default:
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            _buildActionToolbar(context, issue, userRole),
+            const SizedBox(height: 12),
+            ResolutionVerificationCard(issue: issue),
+            const SizedBox(height: 12),
+            _buildDetailsCard(issue),
+            const SizedBox(height: 24),
+            _buildTimelineSection(issue.timeline),
+          ],
+        );
     }
   }
 
@@ -518,7 +625,7 @@ class _IssueDetailScreenState extends State<IssueDetailScreen> with SingleTicker
       );
     }
 
-    // Lead or Manager Assignment button -> Switches directly to Smart Dispatch Tab
+    // Lead or Manager Assignment button -> Opens Smart Dispatch Modal directly
     if (isLeadOrManager) {
       buttons.add(
         ElevatedButton.icon(
@@ -526,17 +633,7 @@ class _IssueDetailScreenState extends State<IssueDetailScreen> with SingleTicker
           label: const Text('Smart Dispatch & Assign'),
           style: ElevatedButton.styleFrom(backgroundColor: AppTheme.primaryBlue),
           onPressed: () {
-            setState(() {
-              _selectedTabIndex = 1; // Switches to Tasks & Field Ops / Smart Dispatch Tab
-            });
-            context.read<OperationsProvider>().fetchRecommendation(widget.issueId);
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
-                content: Text('Switched to Tasks & Field Ops — Smart Dispatch Engine active'),
-                duration: Duration(seconds: 2),
-                backgroundColor: AppTheme.primaryBlue,
-              ),
-            );
+            _showSmartDispatchModal(context, issue);
           },
         ),
       );

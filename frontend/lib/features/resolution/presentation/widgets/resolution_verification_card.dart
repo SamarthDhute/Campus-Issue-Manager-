@@ -3,10 +3,10 @@ import 'package:provider/provider.dart';
 import 'package:smart_campus_issue_manager/core/theme/app_theme.dart';
 import 'package:smart_campus_issue_manager/core/widgets/custom_button.dart';
 import 'package:smart_campus_issue_manager/core/widgets/custom_text_field.dart';
-import '../../issues/data/models/issue_model.dart';
-import '../../issues/state/issue_provider.dart';
-import '../models/feedback_model.dart';
-import '../state/resolution_provider.dart';
+import 'package:smart_campus_issue_manager/features/issues/data/models/issue_model.dart';
+import 'package:smart_campus_issue_manager/features/issues/state/issue_provider.dart';
+import 'package:smart_campus_issue_manager/features/resolution/data/models/feedback_model.dart';
+import 'package:smart_campus_issue_manager/features/resolution/state/resolution_provider.dart';
 
 class ResolutionVerificationCard extends StatefulWidget {
   final IssueModel issue;
@@ -53,7 +53,7 @@ class _ResolutionVerificationCardState extends State<ResolutionVerificationCard>
           behavior: SnackBarBehavior.floating,
         ),
       );
-      context.read<IssueProvider>().loadIssueById(widget.issue.id);
+      context.read<IssueProvider>().loadIssueDetails(widget.issue.id);
       widget.onStatusUpdated?.call();
     }
   }
@@ -63,7 +63,7 @@ class _ResolutionVerificationCardState extends State<ResolutionVerificationCard>
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('Please explain why the issue was not resolved (min 5 chars)'),
-          backgroundColor: AppTheme.warningAmber,
+          backgroundColor: AppTheme.statusAmber,
           behavior: SnackBarBehavior.floating,
         ),
       );
@@ -85,7 +85,7 @@ class _ResolutionVerificationCardState extends State<ResolutionVerificationCard>
           behavior: SnackBarBehavior.floating,
         ),
       );
-      context.read<IssueProvider>().loadIssueById(widget.issue.id);
+      context.read<IssueProvider>().loadIssueDetails(widget.issue.id);
       widget.onStatusUpdated?.call();
     }
   }
@@ -116,11 +116,12 @@ class _ResolutionVerificationCardState extends State<ResolutionVerificationCard>
               children: [
                 const Icon(Icons.verified, color: AppTheme.statusGreen, size: 22),
                 const SizedBox(width: 10),
-                const Text(
-                  'Resolution Verified & Closed',
-                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700, color: AppTheme.statusGreen),
+                const Expanded(
+                  child: Text(
+                    'Resolution Verified & Closed',
+                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700, color: AppTheme.statusGreen),
+                  ),
                 ),
-                const Spacer(),
                 Row(
                   children: List.generate(5, (index) {
                     return Icon(
@@ -172,18 +173,20 @@ class _ResolutionVerificationCardState extends State<ResolutionVerificationCard>
                 child: const Icon(Icons.rate_review_outlined, color: AppTheme.primaryIndigo, size: 20),
               ),
               const SizedBox(width: 12),
-              const Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'Requester Verification & Sign-off',
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700, color: AppTheme.textDark),
-                  ),
-                  Text(
-                    'Operator has marked this ticket resolved. Please verify the repair.',
-                    style: TextStyle(fontSize: 12, color: AppTheme.textMuted),
-                  ),
-                ],
+              const Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Requester Verification & Sign-off',
+                      style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700, color: AppTheme.textDark),
+                    ),
+                    Text(
+                      'Operator has marked this ticket resolved. Please verify the repair.',
+                      style: TextStyle(fontSize: 12, color: AppTheme.textMuted),
+                    ),
+                  ],
+                ),
               ),
             ],
           ),

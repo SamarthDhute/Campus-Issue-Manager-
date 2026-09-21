@@ -226,7 +226,7 @@ class _CreateIssueScreenState extends State<CreateIssueScreen> {
                   Container(
                     padding: const EdgeInsets.all(16),
                     decoration: BoxDecoration(
-                      color: AppTheme.cardBackground,
+                      color: AppTheme.surfaceWhite,
                       borderRadius: BorderRadius.circular(12),
                       border: Border.all(color: AppTheme.borderSubtle),
                     ),

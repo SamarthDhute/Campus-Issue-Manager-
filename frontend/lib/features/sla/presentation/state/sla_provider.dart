@@ -1,4 +1,3 @@
-import 'dart:async';
 import 'package:flutter/material.dart';
 import '../../data/models/sla_models.dart';
 import '../../data/repositories/sla_repository.dart';
@@ -12,7 +11,6 @@ class SlaProvider extends ChangeNotifier {
   bool _isLoading = false;
   String? _errorMessage;
 
-  Timer? _countdownTimer;
   int _currentResponseSeconds = 0;
   int _currentResolutionSeconds = 0;
 
@@ -46,32 +44,12 @@ class SlaProvider extends ChangeNotifier {
 
       _currentResponseSeconds = _sla?.responseSecondsRemaining ?? 0;
       _currentResolutionSeconds = _sla?.resolutionSecondsRemaining ?? 0;
-
-      _startTimer();
     } catch (e) {
       _errorMessage = e.toString();
     } finally {
       _isLoading = false;
       notifyListeners();
     }
-  }
-
-  void _startTimer() {
-    _countdownTimer?.cancel();
-    _countdownTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
-      bool changed = false;
-      if (_currentResponseSeconds > 0) {
-        _currentResponseSeconds--;
-        changed = true;
-      }
-      if (_currentResolutionSeconds > 0) {
-        _currentResolutionSeconds--;
-        changed = true;
-      }
-      if (changed) {
-        notifyListeners();
-      }
-    });
   }
 
   Future<bool> escalateIssue(String issueId, {required int level, required String reason}) async {
@@ -89,11 +67,5 @@ class SlaProvider extends ChangeNotifier {
       notifyListeners();
       return false;
     }
-  }
-
-  @override
-  void dispose() {
-    _countdownTimer?.cancel();
-    super.dispose();
   }
 }

@@ -1,3 +1,6 @@
+$env:TEMP = "E:\temp"
+$env:TMP = "E:\temp"
+
 # Load .env file into current environment
 if (Test-Path ".env") {
     Get-Content ".env" | ForEach-Object {

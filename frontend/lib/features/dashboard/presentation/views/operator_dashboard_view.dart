@@ -15,6 +15,8 @@ class OperatorDashboardView extends StatefulWidget {
 }
 
 class _OperatorDashboardViewState extends State<OperatorDashboardView> {
+  String _selectedFilter = 'ALL'; // 'ALL', 'IN_PROGRESS', 'RESOLVED'
+
   @override
   void initState() {
     super.initState();
@@ -26,15 +28,27 @@ class _OperatorDashboardViewState extends State<OperatorDashboardView> {
   @override
   Widget build(BuildContext context) {
     final issueProvider = context.watch<IssueProvider>();
-    final issues = issueProvider.issues;
+    final allIssues = issueProvider.issues;
 
-    final assignedCount = issues.length;
-    final inProgressCount = issues.where((i) =>
+    final assignedCount = allIssues.length;
+    final inProgressCount = allIssues.where((i) =>
         i.status == 'INVESTIGATING' ||
         i.status == 'ACTION_SCHEDULED' ||
         i.status == 'ACTION_IN_PROGRESS').length;
-    final resolvedCount = issues.where((i) =>
+    final resolvedCount = allIssues.where((i) =>
         i.status == 'RESOLVED_PENDING_CONFIRMATION' || i.status == 'CLOSED').length;
+
+    final filteredIssues = allIssues.where((i) {
+      if (_selectedFilter == 'IN_PROGRESS') {
+        return i.status == 'INVESTIGATING' ||
+            i.status == 'ACTION_SCHEDULED' ||
+            i.status == 'ACTION_IN_PROGRESS';
+      }
+      if (_selectedFilter == 'RESOLVED') {
+        return i.status == 'RESOLVED_PENDING_CONFIRMATION' || i.status == 'CLOSED';
+      }
+      return true;
+    }).toList();
 
     return RefreshIndicator(
       onRefresh: () => context.read<IssueProvider>().loadIssues(assignedToMe: true),
@@ -63,7 +77,9 @@ class _OperatorDashboardViewState extends State<OperatorDashboardView> {
                     value: '$assignedCount',
                     icon: Icons.assignment_ind_outlined,
                     color: AppTheme.primaryIndigo,
-                    subtitle: 'Total assigned',
+                    subtitle: 'Click to view all',
+                    isSelected: _selectedFilter == 'ALL',
+                    onTap: () => setState(() => _selectedFilter = 'ALL'),
                   ),
                   const SizedBox(height: 12, width: 12),
                   StatsCard(
@@ -71,7 +87,9 @@ class _OperatorDashboardViewState extends State<OperatorDashboardView> {
                     value: '$inProgressCount',
                     icon: Icons.build_circle_outlined,
                     color: AppTheme.statusAmber,
-                    subtitle: 'Active cases',
+                    subtitle: 'Click to filter',
+                    isSelected: _selectedFilter == 'IN_PROGRESS',
+                    onTap: () => setState(() => _selectedFilter = 'IN_PROGRESS'),
                   ),
                   const SizedBox(height: 12, width: 12),
                   StatsCard(
@@ -79,7 +97,9 @@ class _OperatorDashboardViewState extends State<OperatorDashboardView> {
                     value: '$resolvedCount',
                     icon: Icons.task_alt_rounded,
                     color: AppTheme.statusGreen,
-                    subtitle: 'Completed',
+                    subtitle: 'Click to filter',
+                    isSelected: _selectedFilter == 'RESOLVED',
+                    onTap: () => setState(() => _selectedFilter = 'RESOLVED'),
                   ),
                 ];
 
@@ -99,34 +119,80 @@ class _OperatorDashboardViewState extends State<OperatorDashboardView> {
             ),
             const SizedBox(height: 24),
 
+            // Filter Chips Bar
+            Row(
+              children: [
+                ActionChip(
+                  label: Text('All ($assignedCount)'),
+                  avatar: Icon(Icons.list_alt, size: 16, color: _selectedFilter == 'ALL' ? Colors.white : AppTheme.textDark),
+                  backgroundColor: _selectedFilter == 'ALL' ? AppTheme.primaryIndigo : AppTheme.surfaceWhite,
+                  labelStyle: TextStyle(
+                    color: _selectedFilter == 'ALL' ? Colors.white : AppTheme.textDark,
+                    fontWeight: _selectedFilter == 'ALL' ? FontWeight.bold : FontWeight.normal,
+                    fontSize: 12,
+                  ),
+                  onPressed: () => setState(() => _selectedFilter = 'ALL'),
+                ),
+                const SizedBox(width: 8),
+                ActionChip(
+                  label: Text('In Progress ($inProgressCount)'),
+                  avatar: Icon(Icons.engineering_outlined, size: 16, color: _selectedFilter == 'IN_PROGRESS' ? Colors.white : AppTheme.statusAmber),
+                  backgroundColor: _selectedFilter == 'IN_PROGRESS' ? AppTheme.statusAmber : AppTheme.surfaceWhite,
+                  labelStyle: TextStyle(
+                    color: _selectedFilter == 'IN_PROGRESS' ? Colors.white : AppTheme.textDark,
+                    fontWeight: _selectedFilter == 'IN_PROGRESS' ? FontWeight.bold : FontWeight.normal,
+                    fontSize: 12,
+                  ),
+                  onPressed: () => setState(() => _selectedFilter = 'IN_PROGRESS'),
+                ),
+                const SizedBox(width: 8),
+                ActionChip(
+                  label: Text('Resolved ($resolvedCount)'),
+                  avatar: Icon(Icons.check_circle_outline, size: 16, color: _selectedFilter == 'RESOLVED' ? Colors.white : AppTheme.statusGreen),
+                  backgroundColor: _selectedFilter == 'RESOLVED' ? AppTheme.statusGreen : AppTheme.surfaceWhite,
+                  labelStyle: TextStyle(
+                    color: _selectedFilter == 'RESOLVED' ? Colors.white : AppTheme.textDark,
+                    fontWeight: _selectedFilter == 'RESOLVED' ? FontWeight.bold : FontWeight.normal,
+                    fontSize: 12,
+                  ),
+                  onPressed: () => setState(() => _selectedFilter = 'RESOLVED'),
+                ),
+              ],
+            ),
+            const SizedBox(height: 16),
+
             // Active Queue
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                const Text(
-                  'Assigned Issue Queue',
-                  style: TextStyle(
+                Text(
+                  _selectedFilter == 'ALL'
+                      ? 'Assigned Issue Queue'
+                      : _selectedFilter == 'IN_PROGRESS'
+                          ? 'In-Progress Queue'
+                          : 'Resolved Cases',
+                  style: const TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.bold,
                     color: AppTheme.textDark,
                   ),
                 ),
-                if (issues.isNotEmpty)
+                if (filteredIssues.isNotEmpty)
                   Text(
-                    '${issues.length} cases',
+                    '${filteredIssues.length} cases',
                     style: const TextStyle(fontSize: 13, color: AppTheme.textMuted),
                   ),
               ],
             ),
             const SizedBox(height: 12),
-            if (issueProvider.isLoading && issues.isEmpty)
+            if (issueProvider.isLoading && allIssues.isEmpty)
               const Center(
                 child: Padding(
                   padding: EdgeInsets.all(32.0),
                   child: CircularProgressIndicator(),
                 ),
               )
-            else if (issues.isEmpty)
+            else if (filteredIssues.isEmpty)
               Container(
                 padding: const EdgeInsets.symmetric(vertical: 32),
                 decoration: BoxDecoration(
@@ -134,9 +200,11 @@ class _OperatorDashboardViewState extends State<OperatorDashboardView> {
                   borderRadius: BorderRadius.circular(12),
                   border: Border.all(color: AppTheme.borderSubtle),
                 ),
-                child: const EmptyStateView(
-                  title: 'Queue is Clear',
-                  description: 'You currently have no pending issues assigned to you.',
+                child: EmptyStateView(
+                  title: _selectedFilter == 'ALL' ? 'Queue is Clear' : 'No matching issues',
+                  description: _selectedFilter == 'ALL'
+                      ? 'You currently have no pending issues assigned to you.'
+                      : 'No issues match the selected filter.',
                   icon: Icons.checklist_rtl_rounded,
                 ),
               )
@@ -144,10 +212,10 @@ class _OperatorDashboardViewState extends State<OperatorDashboardView> {
               ListView.separated(
                 shrinkWrap: true,
                 physics: const NeverScrollableScrollPhysics(),
-                itemCount: issues.length,
+                itemCount: filteredIssues.length,
                 separatorBuilder: (context, index) => const SizedBox(height: 12),
                 itemBuilder: (context, index) {
-                  final issue = issues[index];
+                  final issue = filteredIssues[index];
                   return IssueCard(
                     issue: issue,
                     onTap: () {

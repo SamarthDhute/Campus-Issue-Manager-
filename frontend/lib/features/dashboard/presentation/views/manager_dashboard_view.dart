@@ -15,6 +15,8 @@ class ManagerDashboardView extends StatefulWidget {
 }
 
 class _ManagerDashboardViewState extends State<ManagerDashboardView> {
+  String _selectedFilter = 'ALL'; // 'ALL', 'RESOLVED', 'PENDING'
+
   @override
   void initState() {
     super.initState();
@@ -26,14 +28,25 @@ class _ManagerDashboardViewState extends State<ManagerDashboardView> {
   @override
   Widget build(BuildContext context) {
     final issueProvider = context.watch<IssueProvider>();
-    final issues = issueProvider.issues;
+    final allIssues = issueProvider.issues;
 
-    final totalCount = issues.length;
-    final resolvedCount = issues.where((i) => i.status == 'CLOSED' || i.status == 'RESOLVED_PENDING_CONFIRMATION').length;
+    final totalCount = allIssues.length;
+    final resolvedCount = allIssues.where((i) => i.status == 'CLOSED' || i.status == 'RESOLVED_PENDING_CONFIRMATION').length;
+    final pendingCount = totalCount - resolvedCount;
     final compliance = totalCount == 0 ? 100 : ((resolvedCount / totalCount) * 100).round();
 
     // Unique categories count
-    final activeCategories = issues.map((i) => i.categoryName).where((c) => c != null).toSet().length;
+    final activeCategories = allIssues.map((i) => i.categoryName).where((c) => c != null).toSet().length;
+
+    final filteredIssues = allIssues.where((i) {
+      if (_selectedFilter == 'RESOLVED') {
+        return i.status == 'CLOSED' || i.status == 'RESOLVED_PENDING_CONFIRMATION';
+      }
+      if (_selectedFilter == 'PENDING') {
+        return i.status != 'CLOSED' && i.status != 'RESOLVED_PENDING_CONFIRMATION';
+      }
+      return true;
+    }).toList();
 
     return RefreshIndicator(
       onRefresh: () => context.read<IssueProvider>().loadIssues(),
@@ -62,7 +75,9 @@ class _ManagerDashboardViewState extends State<ManagerDashboardView> {
                     value: '$totalCount',
                     icon: Icons.analytics_outlined,
                     color: AppTheme.primaryBlue,
-                    subtitle: 'All-time volume',
+                    subtitle: 'Click to view all',
+                    isSelected: _selectedFilter == 'ALL',
+                    onTap: () => setState(() => _selectedFilter = 'ALL'),
                   ),
                   const SizedBox(height: 12, width: 12),
                   StatsCard(
@@ -70,15 +85,19 @@ class _ManagerDashboardViewState extends State<ManagerDashboardView> {
                     value: '$compliance%',
                     icon: Icons.speed_rounded,
                     color: AppTheme.statusGreen,
-                    subtitle: '$resolvedCount resolved',
+                    subtitle: 'Click to view resolved ($resolvedCount)',
+                    isSelected: _selectedFilter == 'RESOLVED',
+                    onTap: () => setState(() => _selectedFilter = _selectedFilter == 'RESOLVED' ? 'ALL' : 'RESOLVED'),
                   ),
                   const SizedBox(height: 12, width: 12),
                   StatsCard(
-                    title: 'Active Sectors',
-                    value: '${activeCategories > 0 ? activeCategories : 4}',
-                    icon: Icons.apartment_rounded,
-                    color: AppTheme.primaryIndigo,
-                    subtitle: 'Departments',
+                    title: 'Pending Issues',
+                    value: '$pendingCount',
+                    icon: Icons.pending_actions_rounded,
+                    color: AppTheme.statusAmber,
+                    subtitle: 'Click to view active',
+                    isSelected: _selectedFilter == 'PENDING',
+                    onTap: () => setState(() => _selectedFilter = _selectedFilter == 'PENDING' ? 'ALL' : 'PENDING'),
                   ),
                 ];
 
@@ -98,34 +117,38 @@ class _ManagerDashboardViewState extends State<ManagerDashboardView> {
             ),
             const SizedBox(height: 24),
 
-            // Campus Issues Stream
+            // Executive Activity Log
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                const Text(
-                  'Campus-wide Issue Stream',
-                  style: TextStyle(
+                Text(
+                  _selectedFilter == 'ALL'
+                      ? 'Live Campus Activity Log'
+                      : _selectedFilter == 'RESOLVED'
+                          ? 'Resolved Incidents Log'
+                          : 'Pending Campus Incidents',
+                  style: const TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.bold,
                     color: AppTheme.textDark,
                   ),
                 ),
-                if (issues.isNotEmpty)
+                if (filteredIssues.isNotEmpty)
                   Text(
-                    '${issues.length} records',
+                    '${filteredIssues.length} total',
                     style: const TextStyle(fontSize: 13, color: AppTheme.textMuted),
                   ),
               ],
             ),
             const SizedBox(height: 12),
-            if (issueProvider.isLoading && issues.isEmpty)
+            if (issueProvider.isLoading && allIssues.isEmpty)
               const Center(
                 child: Padding(
                   padding: EdgeInsets.all(32.0),
                   child: CircularProgressIndicator(),
                 ),
               )
-            else if (issues.isEmpty)
+            else if (filteredIssues.isEmpty)
               Container(
                 padding: const EdgeInsets.symmetric(vertical: 32),
                 decoration: BoxDecoration(
@@ -133,20 +156,22 @@ class _ManagerDashboardViewState extends State<ManagerDashboardView> {
                   borderRadius: BorderRadius.circular(12),
                   border: Border.all(color: AppTheme.borderSubtle),
                 ),
-                child: const EmptyStateView(
-                  title: 'Operational Baseline Active',
-                  description: 'Campus-wide SLA trends and problem records will display here as tickets are submitted.',
-                  icon: Icons.insights_rounded,
+                child: EmptyStateView(
+                  title: _selectedFilter == 'ALL' ? 'No Campus Issues' : 'No matching issues',
+                  description: _selectedFilter == 'ALL'
+                      ? 'No operational issues reported across campus yet.'
+                      : 'No issues match the selected filter.',
+                  icon: Icons.domain_verification_rounded,
                 ),
               )
             else
               ListView.separated(
                 shrinkWrap: true,
                 physics: const NeverScrollableScrollPhysics(),
-                itemCount: issues.length,
+                itemCount: filteredIssues.length,
                 separatorBuilder: (context, index) => const SizedBox(height: 12),
                 itemBuilder: (context, index) {
-                  final issue = issues[index];
+                  final issue = filteredIssues[index];
                   return IssueCard(
                     issue: issue,
                     onTap: () {
