@@ -24,6 +24,7 @@ public class IssueServiceImpl implements IssueService {
     private final UserRepository userRepository;
     private final IssueTimelineEventRepository timelineEventRepository;
     private final com.smartcampus.issuemanager.service.SlaService slaService;
+    private final com.smartcampus.issuemanager.service.AuditService auditService;
 
     @Override
     @Transactional
@@ -31,7 +32,8 @@ public class IssueServiceImpl implements IssueService {
         User currentUser = getUser(currentUserId);
 
         Category category = categoryRepository.findById(request.getCategoryId())
-                .orElseThrow(() -> new ResourceNotFoundException("Category not found with ID: " + request.getCategoryId()));
+                .orElseThrow(
+                        () -> new ResourceNotFoundException("Category not found with ID: " + request.getCategoryId()));
 
         String issueNumber = generateIssueNumber();
 
@@ -58,18 +60,36 @@ public class IssueServiceImpl implements IssueService {
         // Record Initial Timeline Event
         IssueTimelineEvent timelineEvent = IssueTimelineEvent.builder()
                 .issue(savedIssue)
-                .eventType(TimelineEventType.CREATED)
+                .eventType(TimelineEventType.REPORTED)
                 .actor(currentUser)
-                .description("Issue reported by " + currentUser.getDisplayName() + " (" + currentUser.getRole() + ")")
+                .description("Issue reported by " + currentUser.getDisplayName())
                 .build();
         timelineEventRepository.save(timelineEvent);
+
+        // Record Phase 8 Audit Event
+        try {
+            auditService.logEvent(
+                    currentUser,
+                    "ISSUE",
+                    savedIssue.getId(),
+                    "ISSUE_CREATED",
+                    "Issue " + savedIssue.getIssueNumber() + " created with priority " + savedIssue.getPriority(),
+                    null,
+                    "{\"status\":\"" + savedIssue.getStatus() + "\",\"priority\":\"" + savedIssue.getPriority() + "\"}",
+                    "{\"location\":\"" + savedIssue.getLocation() + "\",\"categoryId\":\"" + category.getId() + "\"}",
+                    null
+            );
+        } catch (Exception e) {
+            // Non-blocking audit logging
+        }
 
         return mapToResponse(savedIssue);
     }
 
     @Override
     @Transactional(readOnly = true)
-    public List<IssueResponse> getIssues(IssueStatus status, UUID categoryId, Boolean myIssues, Boolean assignedToMe, UUID currentUserId) {
+    public List<IssueResponse> getIssues(IssueStatus status, UUID categoryId, Boolean myIssues, Boolean assignedToMe,
+            UUID currentUserId) {
         User currentUser = getUser(currentUserId);
         List<Issue> issues;
 
@@ -90,7 +110,8 @@ public class IssueServiceImpl implements IssueService {
 
         return issues.stream()
                 .filter(i -> status == null || i.getStatus() == status)
-                .filter(i -> categoryId == null || (i.getCategory() != null && i.getCategory().getId().equals(categoryId)))
+                .filter(i -> categoryId == null
+                        || (i.getCategory() != null && i.getCategory().getId().equals(categoryId)))
                 .map(this::mapToResponse)
                 .collect(Collectors.toList());
     }
@@ -143,6 +164,23 @@ public class IssueServiceImpl implements IssueService {
                 .build();
         timelineEventRepository.save(timelineEvent);
 
+        // Record Phase 8 Audit Event
+        try {
+            auditService.logEvent(
+                    currentUser,
+                    "ISSUE",
+                    updatedIssue.getId(),
+                    "STATUS_TRANSITION",
+                    "Status changed from " + oldStatus + " to " + request.getStatus() + (request.getComment() != null ? " (" + request.getComment().trim() + ")" : ""),
+                    "{\"status\":\"" + oldStatus + "\"}",
+                    "{\"status\":\"" + request.getStatus() + "\"}",
+                    "{\"comment\":\"" + (request.getComment() != null ? request.getComment().trim() : "") + "\"}",
+                    null
+            );
+        } catch (Exception e) {
+            // Non-blocking
+        }
+
         return mapToResponse(updatedIssue);
     }
 
@@ -160,14 +198,16 @@ public class IssueServiceImpl implements IssueService {
         Team assignedTeam = null;
         if (request.getAssignedTeamId() != null) {
             assignedTeam = teamRepository.findById(request.getAssignedTeamId())
-                    .orElseThrow(() -> new ResourceNotFoundException("Team not found with ID: " + request.getAssignedTeamId()));
+                    .orElseThrow(() -> new ResourceNotFoundException(
+                            "Team not found with ID: " + request.getAssignedTeamId()));
             issue.setAssignedTeam(assignedTeam);
         }
 
         User assignedUser = null;
         if (request.getAssignedUserId() != null) {
             assignedUser = userRepository.findById(request.getAssignedUserId())
-                    .orElseThrow(() -> new ResourceNotFoundException("User not found with ID: " + request.getAssignedUserId()));
+                    .orElseThrow(() -> new ResourceNotFoundException(
+                            "User not found with ID: " + request.getAssignedUserId()));
             issue.setAssignedUser(assignedUser);
         }
 
@@ -196,6 +236,23 @@ public class IssueServiceImpl implements IssueService {
                 .build();
         timelineEventRepository.save(timelineEvent);
 
+        // Record Phase 8 Audit Event
+        try {
+            auditService.logEvent(
+                    currentUser,
+                    "ISSUE",
+                    updatedIssue.getId(),
+                    "ISSUE_ASSIGNED",
+                    desc.toString(),
+                    null,
+                    "{\"assignedTeam\":\"" + (assignedTeam != null ? assignedTeam.getName() : "None") + "\",\"assignedUser\":\"" + (assignedUser != null ? assignedUser.getDisplayName() : "None") + "\"}",
+                    "{\"status\":\"" + updatedIssue.getStatus() + "\"}",
+                    null
+            );
+        } catch (Exception e) {
+            // Non-blocking
+        }
+
         return mapToResponse(updatedIssue);
     }
 
@@ -223,12 +280,13 @@ public class IssueServiceImpl implements IssueService {
     }
 
     private void validateStatusTransition(IssueStatus current, IssueStatus next, Role actorRole) {
-        if (current == next) return;
+        if (current == next)
+            return;
 
         // Requester permissions
         if (actorRole == Role.STUDENT) {
             if ((current == IssueStatus.RESOLUTION_PROPOSED || current == IssueStatus.RESOLVED_PENDING_CONFIRMATION) &&
-                (next == IssueStatus.CONFIRMED || next == IssueStatus.CLOSED || next == IssueStatus.REOPENED)) {
+                    (next == IssueStatus.CONFIRMED || next == IssueStatus.CLOSED || next == IssueStatus.REOPENED)) {
                 return;
             }
             if (next == IssueStatus.CANCELLED && current == IssueStatus.REPORTED) {
@@ -239,18 +297,42 @@ public class IssueServiceImpl implements IssueService {
 
         // Staff permissions (Operator, Team Lead, Campus Manager, Admin)
         boolean valid = switch (current) {
-            case REPORTED -> next == IssueStatus.UNDERSTOOD || next == IssueStatus.INVESTIGATING || next == IssueStatus.INVESTIGATED || next == IssueStatus.ASSIGNED || next == IssueStatus.CANCELLED || next == IssueStatus.DUPLICATE || next == IssueStatus.WAITING_FOR_INFORMATION;
-            case UNDERSTOOD -> next == IssueStatus.ASSIGNED || next == IssueStatus.INVESTIGATING || next == IssueStatus.INVESTIGATED || next == IssueStatus.DUPLICATE || next == IssueStatus.WAITING_FOR_INFORMATION;
-            case ASSIGNED -> next == IssueStatus.INVESTIGATING || next == IssueStatus.INVESTIGATED || next == IssueStatus.ACTION_SCHEDULED || next == IssueStatus.ACTION_IN_PROGRESS || next == IssueStatus.ACTION_TAKEN || next == IssueStatus.ESCALATED || next == IssueStatus.WAITING_FOR_INFORMATION;
-            case INVESTIGATING, INVESTIGATED -> next == IssueStatus.ACTION_SCHEDULED || next == IssueStatus.ACTION_IN_PROGRESS || next == IssueStatus.ACTION_TAKEN || next == IssueStatus.RESOLVED_PENDING_CONFIRMATION || next == IssueStatus.RESOLUTION_PROPOSED || next == IssueStatus.ESCALATED || next == IssueStatus.WAITING_FOR_INFORMATION;
-            case ACTION_SCHEDULED -> next == IssueStatus.ACTION_IN_PROGRESS || next == IssueStatus.ACTION_TAKEN || next == IssueStatus.INVESTIGATING || next == IssueStatus.INVESTIGATED || next == IssueStatus.ESCALATED;
-            case ACTION_IN_PROGRESS, ACTION_TAKEN -> next == IssueStatus.RESOLVED_PENDING_CONFIRMATION || next == IssueStatus.RESOLUTION_PROPOSED || next == IssueStatus.INVESTIGATING || next == IssueStatus.INVESTIGATED || next == IssueStatus.ESCALATED;
-            case RESOLVED_PENDING_CONFIRMATION, RESOLUTION_PROPOSED -> next == IssueStatus.CONFIRMED || next == IssueStatus.CLOSED || next == IssueStatus.REOPENED || next == IssueStatus.INVESTIGATING;
+            case REPORTED -> next == IssueStatus.UNDERSTOOD || next == IssueStatus.INVESTIGATING
+                    || next == IssueStatus.INVESTIGATED || next == IssueStatus.ASSIGNED || next == IssueStatus.CANCELLED
+                    || next == IssueStatus.DUPLICATE || next == IssueStatus.WAITING_FOR_INFORMATION;
+            case UNDERSTOOD ->
+                next == IssueStatus.ASSIGNED || next == IssueStatus.INVESTIGATING || next == IssueStatus.INVESTIGATED
+                        || next == IssueStatus.DUPLICATE || next == IssueStatus.WAITING_FOR_INFORMATION;
+            case ASSIGNED -> next == IssueStatus.INVESTIGATING || next == IssueStatus.INVESTIGATED
+                    || next == IssueStatus.ACTION_SCHEDULED || next == IssueStatus.ACTION_IN_PROGRESS
+                    || next == IssueStatus.ACTION_TAKEN || next == IssueStatus.ESCALATED
+                    || next == IssueStatus.WAITING_FOR_INFORMATION;
+            case INVESTIGATING,
+                    INVESTIGATED ->
+                next == IssueStatus.ACTION_SCHEDULED || next == IssueStatus.ACTION_IN_PROGRESS
+                        || next == IssueStatus.ACTION_TAKEN || next == IssueStatus.RESOLVED_PENDING_CONFIRMATION
+                        || next == IssueStatus.RESOLUTION_PROPOSED || next == IssueStatus.ESCALATED
+                        || next == IssueStatus.WAITING_FOR_INFORMATION;
+            case ACTION_SCHEDULED -> next == IssueStatus.ACTION_IN_PROGRESS || next == IssueStatus.ACTION_TAKEN
+                    || next == IssueStatus.INVESTIGATING || next == IssueStatus.INVESTIGATED
+                    || next == IssueStatus.ESCALATED;
+            case ACTION_IN_PROGRESS,
+                    ACTION_TAKEN ->
+                next == IssueStatus.RESOLVED_PENDING_CONFIRMATION || next == IssueStatus.RESOLUTION_PROPOSED
+                        || next == IssueStatus.INVESTIGATING || next == IssueStatus.INVESTIGATED
+                        || next == IssueStatus.ESCALATED;
+            case RESOLVED_PENDING_CONFIRMATION, RESOLUTION_PROPOSED -> next == IssueStatus.CONFIRMED
+                    || next == IssueStatus.CLOSED || next == IssueStatus.REOPENED || next == IssueStatus.INVESTIGATING;
             case CONFIRMED -> next == IssueStatus.CLOSED || next == IssueStatus.REOPENED;
             case CLOSED -> next == IssueStatus.REOPENED;
-            case WAITING_FOR_INFORMATION -> next == IssueStatus.UNDERSTOOD || next == IssueStatus.INVESTIGATING || next == IssueStatus.INVESTIGATED || next == IssueStatus.ACTION_IN_PROGRESS || next == IssueStatus.ACTION_TAKEN;
-            case ESCALATED -> next == IssueStatus.ASSIGNED || next == IssueStatus.INVESTIGATING || next == IssueStatus.INVESTIGATED || next == IssueStatus.ACTION_IN_PROGRESS || next == IssueStatus.ACTION_TAKEN;
-            case REOPENED -> next == IssueStatus.ASSIGNED || next == IssueStatus.INVESTIGATING || next == IssueStatus.INVESTIGATED;
+            case WAITING_FOR_INFORMATION ->
+                next == IssueStatus.UNDERSTOOD || next == IssueStatus.INVESTIGATING || next == IssueStatus.INVESTIGATED
+                        || next == IssueStatus.ACTION_IN_PROGRESS || next == IssueStatus.ACTION_TAKEN;
+            case ESCALATED ->
+                next == IssueStatus.ASSIGNED || next == IssueStatus.INVESTIGATING || next == IssueStatus.INVESTIGATED
+                        || next == IssueStatus.ACTION_IN_PROGRESS || next == IssueStatus.ACTION_TAKEN;
+            case REOPENED ->
+                next == IssueStatus.ASSIGNED || next == IssueStatus.INVESTIGATING || next == IssueStatus.INVESTIGATED;
             case CANCELLED, DUPLICATE -> false;
         };
 

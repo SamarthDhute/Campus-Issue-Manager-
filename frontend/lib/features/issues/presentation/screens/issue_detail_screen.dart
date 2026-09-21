@@ -18,6 +18,8 @@ import '../../../sla/presentation/widgets/escalation_banner_widget.dart';
 import '../../../resolution/state/resolution_provider.dart';
 import '../../../resolution/presentation/widgets/resolution_verification_card.dart';
 import '../../../resolution/presentation/widgets/resolution_evidence_widget.dart';
+import '../../../audit/state/audit_provider.dart';
+import '../../../audit/presentation/widgets/audit_trail_widget.dart';
 import '../widgets/ai_case_intelligence_card.dart';
 import '../widgets/priority_chip.dart';
 import '../widgets/status_chip.dart';
@@ -43,6 +45,7 @@ class _IssueDetailScreenState extends State<IssueDetailScreen> with SingleTicker
       context.read<OperationsProvider>().loadOperationsData(widget.issueId, isStaff: userRole != 'STUDENT');
       context.read<SlaProvider>().loadSlaData(widget.issueId);
       context.read<ResolutionProvider>().loadAllResolutionData(widget.issueId);
+      context.read<AuditProvider>().loadIssueAuditTrail(widget.issueId);
     });
   }
 
@@ -334,6 +337,7 @@ class _IssueDetailScreenState extends State<IssueDetailScreen> with SingleTicker
       if (isStaff) {'key': 'ai', 'label': 'AI Insights', 'icon': Icons.insights_rounded},
       if (isStaff) {'key': 'notes', 'label': 'Staff Notes', 'icon': Icons.lock_clock_rounded},
       {'key': 'chat', 'label': 'Chat & Comms', 'icon': Icons.forum_rounded},
+      {'key': 'audit', 'label': 'Audit Trail', 'icon': Icons.shield_outlined},
     ];
   }
 
@@ -457,6 +461,48 @@ class _IssueDetailScreenState extends State<IssueDetailScreen> with SingleTicker
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             RequesterChatWidget(issue: issue),
+          ],
+        );
+
+      case 'audit':
+        final auditProvider = context.watch<AuditProvider>();
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                const Row(
+                  children: [
+                    Icon(Icons.shield_outlined, color: AppTheme.primaryBlue, size: 20),
+                    SizedBox(width: 8),
+                    Text(
+                      'Immutable Case Audit Trail',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                        color: AppTheme.textDark,
+                      ),
+                    ),
+                  ],
+                ),
+                TextButton.icon(
+                  onPressed: () => context.read<AuditProvider>().loadIssueAuditTrail(issue.id),
+                  icon: const Icon(Icons.refresh, size: 16),
+                  label: const Text('Refresh'),
+                ),
+              ],
+            ),
+            const SizedBox(height: 12),
+            if (auditProvider.isLoading && auditProvider.issueAuditTrail.isEmpty)
+              const Center(
+                child: Padding(
+                  padding: EdgeInsets.all(24.0),
+                  child: CircularProgressIndicator(),
+                ),
+              )
+            else
+              AuditTrailWidget(events: auditProvider.issueAuditTrail),
           ],
         );
 
