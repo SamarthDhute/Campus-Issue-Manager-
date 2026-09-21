@@ -15,6 +15,9 @@ import '../../../sla/presentation/state/sla_provider.dart';
 import '../../../sla/presentation/widgets/sla_countdown_card.dart';
 import '../../../sla/presentation/widgets/risk_signals_card.dart';
 import '../../../sla/presentation/widgets/escalation_banner_widget.dart';
+import '../../../resolution/state/resolution_provider.dart';
+import '../../../resolution/presentation/widgets/resolution_verification_card.dart';
+import '../../../resolution/presentation/widgets/resolution_evidence_widget.dart';
 import '../widgets/ai_case_intelligence_card.dart';
 import '../widgets/priority_chip.dart';
 import '../widgets/status_chip.dart';
@@ -39,6 +42,7 @@ class _IssueDetailScreenState extends State<IssueDetailScreen> with SingleTicker
       final userRole = context.read<AuthProvider>().user?.role.toUpperCase() ?? 'STUDENT';
       context.read<OperationsProvider>().loadOperationsData(widget.issueId, isStaff: userRole != 'STUDENT');
       context.read<SlaProvider>().loadSlaData(widget.issueId);
+      context.read<ResolutionProvider>().loadAllResolutionData(widget.issueId);
     });
   }
 
@@ -320,9 +324,13 @@ class _IssueDetailScreenState extends State<IssueDetailScreen> with SingleTicker
       return Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          ResolutionVerificationCard(issue: issue),
+          const SizedBox(height: 12),
           EscalationBannerWidget(issueId: issue.id, issueNumber: issue.issueNumber),
           SlaCountdownCard(issueId: issue.id),
           RiskSignalsCard(issueId: issue.id),
+          const SizedBox(height: 16),
+          ResolutionEvidenceWidget(issueId: issue.id, canUpload: isStaff),
           const SizedBox(height: 16),
           AiCaseIntelligenceCard(issue: issue),
           _buildActionToolbar(context, issue, userRole),
@@ -341,6 +349,8 @@ class _IssueDetailScreenState extends State<IssueDetailScreen> with SingleTicker
           TasksChecklistWidget(issue: issue, isStaff: isStaff),
           const SizedBox(height: 12),
           InvestigationLogWidget(issue: issue, isStaff: isStaff),
+          const SizedBox(height: 12),
+          ResolutionEvidenceWidget(issueId: issue.id, canUpload: isStaff),
         ],
       );
     } else if (_selectedTabIndex == 2 && isStaff) {

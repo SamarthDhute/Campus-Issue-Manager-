@@ -107,6 +107,44 @@ class ApiClient {
     }
   }
 
+  Future<dynamic> uploadMultipart(
+    String endpoint, {
+    required List<int> fileBytes,
+    required String filename,
+    String fieldName = 'file',
+    Map<String, String>? fields,
+  }) async {
+    try {
+      final uri = Uri.parse('${AppConstants.apiBaseUrl}$endpoint');
+      final request = http.MultipartRequest('POST', uri);
+
+      final token = _authToken ?? await _storageService.getToken();
+      if (token != null && token.isNotEmpty) {
+        request.headers['Authorization'] = 'Bearer $token';
+      }
+      request.headers['Accept'] = 'application/json';
+
+      if (fields != null) {
+        request.fields.addAll(fields);
+      }
+
+      request.files.add(
+        http.MultipartFile.fromBytes(
+          fieldName,
+          fileBytes,
+          filename: filename,
+        ),
+      );
+
+      final streamedResponse = await _client.send(request);
+      final response = await http.Response.fromStream(streamedResponse);
+      return _handleResponse(response);
+    } catch (e) {
+      if (e is AppException) rethrow;
+      throw AppException(message: 'Connection failed: Unable to upload attachment ($e)');
+    }
+  }
+
   dynamic _handleResponse(http.Response response) {
     dynamic responseBody;
     if (response.body.isNotEmpty) {

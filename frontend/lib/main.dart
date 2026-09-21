@@ -13,6 +13,7 @@ import 'features/issues/state/ai_provider.dart';
 import 'features/operations/state/operations_provider.dart';
 import 'features/sla/presentation/state/sla_provider.dart';
 import 'features/sla/presentation/state/notification_provider.dart';
+import 'features/resolution/state/resolution_provider.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
@@ -27,6 +28,7 @@ void main() {
         ChangeNotifierProvider(create: (_) => OperationsProvider()),
         ChangeNotifierProvider(create: (_) => SlaProvider()),
         ChangeNotifierProvider(create: (_) => NotificationProvider()..startPolling()),
+        ChangeNotifierProvider(create: (_) => ResolutionProvider()),
       ],
       child: const SmartCampusApp(),
     ),

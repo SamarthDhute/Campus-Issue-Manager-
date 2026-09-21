@@ -3,6 +3,8 @@ import 'package:provider/provider.dart';
 import 'package:smart_campus_issue_manager/core/theme/app_theme.dart';
 import 'package:smart_campus_issue_manager/core/widgets/custom_button.dart';
 import 'package:smart_campus_issue_manager/core/widgets/custom_text_field.dart';
+import 'package:smart_campus_issue_manager/features/resolution/presentation/widgets/media_attachment_picker.dart';
+import 'package:smart_campus_issue_manager/features/resolution/state/resolution_provider.dart';
 import '../../state/category_provider.dart';
 import '../../state/issue_provider.dart';
 
@@ -21,6 +23,8 @@ class _CreateIssueScreenState extends State<CreateIssueScreen> {
 
   String? _selectedCategoryId;
   String _selectedPriority = 'MEDIUM';
+  List<PickedMediaItem> _pickedFiles = [];
+  bool _isUploadingAttachments = false;
 
   @override
   void initState() {
@@ -52,6 +56,8 @@ class _CreateIssueScreenState extends State<CreateIssueScreen> {
     }
 
     final issueProvider = context.read<IssueProvider>();
+    final resolutionProvider = context.read<ResolutionProvider>();
+
     final newIssue = await issueProvider.createIssue(
       title: _titleController.text.trim(),
       description: _descriptionController.text.trim(),
@@ -61,14 +67,28 @@ class _CreateIssueScreenState extends State<CreateIssueScreen> {
     );
 
     if (newIssue != null && mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Issue ${newIssue.issueNumber} submitted successfully!'),
-          backgroundColor: AppTheme.statusGreen,
-          behavior: SnackBarBehavior.floating,
-        ),
-      );
-      Navigator.of(context).pop(true);
+      if (_pickedFiles.isNotEmpty) {
+        setState(() => _isUploadingAttachments = true);
+        for (final file in _pickedFiles) {
+          await resolutionProvider.uploadAttachment(
+            issueId: newIssue.id,
+            fileBytes: file.bytes,
+            fileName: file.fileName,
+          );
+        }
+        if (mounted) setState(() => _isUploadingAttachments = false);
+      }
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Issue ${newIssue.issueNumber} submitted successfully with ${_pickedFiles.length} attachments!'),
+            backgroundColor: AppTheme.statusGreen,
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+        Navigator.of(context).pop(true);
+      }
     } else if (mounted && issueProvider.errorMessage != null) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -85,6 +105,7 @@ class _CreateIssueScreenState extends State<CreateIssueScreen> {
     final categoryProvider = context.watch<CategoryProvider>();
     final issueProvider = context.watch<IssueProvider>();
     final categories = categoryProvider.categories;
+    final isBusy = issueProvider.isSubmitting || _isUploadingAttachments;
 
     return Scaffold(
       appBar: AppBar(
@@ -199,14 +220,34 @@ class _CreateIssueScreenState extends State<CreateIssueScreen> {
                       return null;
                     },
                   ),
+                  const SizedBox(height: 18),
+
+                  // Media Attachment Picker (Camera & Gallery)
+                  Container(
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: AppTheme.cardBackground,
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(color: AppTheme.borderSubtle),
+                    ),
+                    child: MediaAttachmentPicker(
+                      onFilesChanged: (files) {
+                        setState(() {
+                          _pickedFiles = files;
+                        });
+                      },
+                    ),
+                  ),
                   const SizedBox(height: 28),
 
                   // Submit Button
                   CustomButton(
-                    label: 'Submit Campus Issue',
+                    label: _isUploadingAttachments
+                        ? 'Uploading photos & creating ticket...'
+                        : 'Submit Campus Issue',
                     icon: Icons.send_rounded,
-                    isLoading: issueProvider.isSubmitting,
-                    onPressed: issueProvider.isSubmitting ? null : _submitIssue,
+                    isLoading: isBusy,
+                    onPressed: isBusy ? null : _submitIssue,
                   ),
                 ],
               ),
