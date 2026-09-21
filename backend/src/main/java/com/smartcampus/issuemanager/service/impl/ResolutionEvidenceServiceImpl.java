@@ -28,6 +28,7 @@ public class ResolutionEvidenceServiceImpl implements ResolutionEvidenceService 
     private final ResolutionEvidenceRepository evidenceRepository;
     private final IssueRepository issueRepository;
     private final UserRepository userRepository;
+    private final com.smartcampus.issuemanager.service.NotificationService notificationService;
 
     @Override
     @Transactional
@@ -51,6 +52,22 @@ public class ResolutionEvidenceServiceImpl implements ResolutionEvidenceService 
 
         ResolutionEvidence saved = evidenceRepository.save(evidence);
         log.info("Saved resolution evidence {} ({}) for issue {}", saved.getId(), saved.getEvidenceType(), issue.getIssueNumber());
+
+        // Notify student if uploaded by staff/operator
+        try {
+            if (issue.getRequester() != null && !issue.getRequester().getId().equals(currentUser.getId())) {
+                notificationService.sendNotification(
+                        issue.getRequester(),
+                        issue,
+                        com.smartcampus.issuemanager.entity.NotificationType.EVIDENCE_UPLOADED,
+                        "Resolution Proof Added: " + issue.getIssueNumber(),
+                        "Work evidence photo was uploaded by " + currentUser.getDisplayName() + (request.getNotes() != null ? ": " + request.getNotes() : ""),
+                        com.smartcampus.issuemanager.entity.NotificationChannel.IN_APP
+                );
+            }
+        } catch (Exception e) {
+            log.warn("Failed to notify requester about evidence upload", e);
+        }
 
         return mapToResponse(saved);
     }

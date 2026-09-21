@@ -25,6 +25,7 @@ public class IssueServiceImpl implements IssueService {
     private final IssueTimelineEventRepository timelineEventRepository;
     private final com.smartcampus.issuemanager.service.SlaService slaService;
     private final com.smartcampus.issuemanager.service.AuditService auditService;
+    private final com.smartcampus.issuemanager.service.NotificationService notificationService;
 
     @Override
     @Transactional
@@ -181,6 +182,22 @@ public class IssueServiceImpl implements IssueService {
             // Non-blocking
         }
 
+        // Send in-app notification to Student/Requester
+        try {
+            if (updatedIssue.getRequester() != null && !updatedIssue.getRequester().getId().equals(currentUser.getId())) {
+                notificationService.sendNotification(
+                        updatedIssue.getRequester(),
+                        updatedIssue,
+                        NotificationType.STATUS_CHANGED,
+                        "Issue Update: " + updatedIssue.getIssueNumber(),
+                        "Status has been updated to " + request.getStatus() + (request.getComment() != null ? ": " + request.getComment().trim() : ""),
+                        NotificationChannel.IN_APP
+                );
+            }
+        } catch (Exception e) {
+            // Non-blocking notification dispatch
+        }
+
         return mapToResponse(updatedIssue);
     }
 
@@ -249,6 +266,32 @@ public class IssueServiceImpl implements IssueService {
                     "{\"status\":\"" + updatedIssue.getStatus() + "\"}",
                     null
             );
+        } catch (Exception e) {
+            // Non-blocking
+        }
+
+        // Notify assigned operator
+        try {
+            if (assignedUser != null && !assignedUser.getId().equals(currentUser.getId())) {
+                notificationService.sendNotification(
+                        assignedUser,
+                        updatedIssue,
+                        NotificationType.ASSIGNMENT_UPDATE,
+                        "New Task Assigned: " + updatedIssue.getIssueNumber(),
+                        "You have been assigned to: " + updatedIssue.getTitle() + " at " + updatedIssue.getLocation(),
+                        NotificationChannel.IN_APP
+                );
+            }
+            if (updatedIssue.getRequester() != null && !updatedIssue.getRequester().getId().equals(currentUser.getId())) {
+                notificationService.sendNotification(
+                        updatedIssue.getRequester(),
+                        updatedIssue,
+                        NotificationType.ASSIGNMENT_UPDATE,
+                        "Issue Assigned: " + updatedIssue.getIssueNumber(),
+                        "Your issue has been assigned to " + (assignedTeam != null ? assignedTeam.getName() : "specialist team"),
+                        NotificationChannel.IN_APP
+                );
+            }
         } catch (Exception e) {
             // Non-blocking
         }

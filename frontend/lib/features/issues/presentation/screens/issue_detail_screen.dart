@@ -515,6 +515,8 @@ class _IssueDetailScreenState extends State<IssueDetailScreen> with SingleTicker
             const SizedBox(height: 12),
             ResolutionVerificationCard(issue: issue),
             const SizedBox(height: 12),
+            _buildEvidenceOverviewSection(context),
+            const SizedBox(height: 12),
             _buildDetailsCard(issue),
             const SizedBox(height: 24),
             _buildTimelineSection(issue.timeline),
@@ -583,35 +585,18 @@ class _IssueDetailScreenState extends State<IssueDetailScreen> with SingleTicker
   Widget _buildActionToolbar(BuildContext context, IssueModel issue, String role) {
     final isOperator = role == 'OPERATOR' || role == 'FACULTY_STAFF' || role == 'STAFF';
     final isLeadOrManager = role == 'TEAM_LEAD' || role == 'CAMPUS_MANAGER' || role == 'MANAGER' || role == 'ADMIN';
+    final isStaff = isOperator || isLeadOrManager;
 
     final buttons = <Widget>[];
 
-    // Status-specific action buttons
-    if (issue.status == 'REPORTED' && (isOperator || isLeadOrManager)) {
+    // Status-specific action buttons for Field Operators & Staff
+    if ((issue.status == 'REPORTED' || issue.status == 'UNDERSTOOD' || issue.status == 'TRIAGED') && isStaff) {
       buttons.add(
         ElevatedButton.icon(
           icon: const Icon(Icons.search, size: 18),
           label: const Text('Start Investigation'),
           style: ElevatedButton.styleFrom(backgroundColor: AppTheme.primaryIndigo),
           onPressed: () => _showStatusUpdateDialog(context, issue.status, 'INVESTIGATING', 'Begin Investigation'),
-        ),
-      );
-    } else if (issue.status == 'TRIAGED' && (isOperator || isLeadOrManager)) {
-      buttons.add(
-        ElevatedButton.icon(
-          icon: const Icon(Icons.search, size: 18),
-          label: const Text('Start Investigation'),
-          style: ElevatedButton.styleFrom(backgroundColor: AppTheme.primaryIndigo),
-          onPressed: () => _showStatusUpdateDialog(context, issue.status, 'INVESTIGATING', 'Begin Investigation'),
-        ),
-      );
-    } else if (issue.status == 'INVESTIGATING' && (isOperator || isLeadOrManager)) {
-      buttons.add(
-        ElevatedButton.icon(
-          icon: const Icon(Icons.schedule, size: 18),
-          label: const Text('Schedule Action'),
-          style: ElevatedButton.styleFrom(backgroundColor: Colors.indigo),
-          onPressed: () => _showStatusUpdateDialog(context, issue.status, 'ACTION_SCHEDULED', 'Schedule Maintenance'),
         ),
       );
       buttons.add(
@@ -622,7 +607,49 @@ class _IssueDetailScreenState extends State<IssueDetailScreen> with SingleTicker
           onPressed: () => _showStatusUpdateDialog(context, issue.status, 'ACTION_IN_PROGRESS', 'Start Field Work'),
         ),
       );
-    } else if (issue.status == 'ACTION_SCHEDULED' && (isOperator || isLeadOrManager)) {
+    } else if (issue.status == 'ASSIGNED' && isStaff) {
+      buttons.add(
+        ElevatedButton.icon(
+          icon: const Icon(Icons.play_arrow_rounded, size: 18),
+          label: const Text('Start Work'),
+          style: ElevatedButton.styleFrom(backgroundColor: AppTheme.primaryBlue),
+          onPressed: () => _showStatusUpdateDialog(context, issue.status, 'ACTION_IN_PROGRESS', 'Start Field Work'),
+        ),
+      );
+      buttons.add(
+        OutlinedButton.icon(
+          icon: const Icon(Icons.search, size: 18),
+          label: const Text('Investigate'),
+          style: OutlinedButton.styleFrom(foregroundColor: AppTheme.primaryIndigo),
+          onPressed: () => _showStatusUpdateDialog(context, issue.status, 'INVESTIGATING', 'Begin Investigation'),
+        ),
+      );
+      buttons.add(
+        OutlinedButton.icon(
+          icon: const Icon(Icons.pause_circle_outline, size: 18),
+          label: const Text('Wait for Info'),
+          style: OutlinedButton.styleFrom(foregroundColor: Colors.orange.shade800),
+          onPressed: () => _showStatusUpdateDialog(context, issue.status, 'WAITING_FOR_INFORMATION', 'Wait for Information / Parts'),
+        ),
+      );
+    } else if (issue.status == 'INVESTIGATING' && isStaff) {
+      buttons.add(
+        ElevatedButton.icon(
+          icon: const Icon(Icons.build_circle, size: 18),
+          label: const Text('Start Work'),
+          style: ElevatedButton.styleFrom(backgroundColor: AppTheme.primaryBlue),
+          onPressed: () => _showStatusUpdateDialog(context, issue.status, 'ACTION_IN_PROGRESS', 'Start Field Work'),
+        ),
+      );
+      buttons.add(
+        OutlinedButton.icon(
+          icon: const Icon(Icons.schedule, size: 18),
+          label: const Text('Schedule Action'),
+          style: OutlinedButton.styleFrom(foregroundColor: Colors.indigo),
+          onPressed: () => _showStatusUpdateDialog(context, issue.status, 'ACTION_SCHEDULED', 'Schedule Maintenance'),
+        ),
+      );
+    } else if (issue.status == 'ACTION_SCHEDULED' && isStaff) {
       buttons.add(
         ElevatedButton.icon(
           icon: const Icon(Icons.play_arrow, size: 18),
@@ -631,19 +658,53 @@ class _IssueDetailScreenState extends State<IssueDetailScreen> with SingleTicker
           onPressed: () => _showStatusUpdateDialog(context, issue.status, 'ACTION_IN_PROGRESS', 'Start Field Work'),
         ),
       );
-    } else if (issue.status == 'ACTION_IN_PROGRESS' && (isOperator || isLeadOrManager)) {
+    } else if ((issue.status == 'ACTION_IN_PROGRESS' || issue.status == 'ACTION_TAKEN') && isStaff) {
       buttons.add(
         ElevatedButton.icon(
           icon: const Icon(Icons.check_circle_outline, size: 18),
           label: const Text('Propose Resolution'),
           style: ElevatedButton.styleFrom(backgroundColor: AppTheme.statusGreen),
-          onPressed: () => _showStatusUpdateDialog(context, issue.status, 'RESOLVED_PENDING_CONFIRMATION', 'Propose Resolution'),
+          onPressed: () => _showStatusUpdateDialog(context, issue.status, 'RESOLVED_PENDING_CONFIRMATION', 'Propose Resolution to Requester'),
+        ),
+      );
+      buttons.add(
+        OutlinedButton.icon(
+          icon: const Icon(Icons.pause_circle_outline, size: 18),
+          label: const Text('Block / Wait Info'),
+          style: OutlinedButton.styleFrom(foregroundColor: Colors.orange.shade800),
+          onPressed: () => _showStatusUpdateDialog(context, issue.status, 'WAITING_FOR_INFORMATION', 'Mark Blocked / Waiting for Parts'),
+        ),
+      );
+    } else if (issue.status == 'WAITING_FOR_INFORMATION' && isStaff) {
+      buttons.add(
+        ElevatedButton.icon(
+          icon: const Icon(Icons.play_arrow, size: 18),
+          label: const Text('Resume Work'),
+          style: ElevatedButton.styleFrom(backgroundColor: AppTheme.primaryBlue),
+          onPressed: () => _showStatusUpdateDialog(context, issue.status, 'ACTION_IN_PROGRESS', 'Resume Field Work'),
+        ),
+      );
+    }
+
+    // Direct Upload Proof button for Staff
+    if (isStaff && issue.status != 'CLOSED' && issue.status != 'CONFIRMED' && issue.status != 'CANCELLED') {
+      buttons.add(
+        OutlinedButton.icon(
+          icon: const Icon(Icons.camera_alt_outlined, size: 18),
+          label: const Text('Upload Proof / Photos'),
+          style: OutlinedButton.styleFrom(
+            foregroundColor: AppTheme.primaryBlue,
+            side: const BorderSide(color: AppTheme.primaryBlue),
+          ),
+          onPressed: () {
+            setState(() => _selectedTabKey = 'tasks');
+          },
         ),
       );
     }
 
     // Requester confirmation / reopening
-    if (issue.status == 'RESOLVED_PENDING_CONFIRMATION') {
+    if (issue.status == 'RESOLVED_PENDING_CONFIRMATION' || issue.status == 'RESOLUTION_PROPOSED') {
       buttons.add(
         ElevatedButton.icon(
           icon: const Icon(Icons.verified, size: 18),
@@ -660,7 +721,7 @@ class _IssueDetailScreenState extends State<IssueDetailScreen> with SingleTicker
           onPressed: () => _showStatusUpdateDialog(context, issue.status, 'REOPENED', 'Reopen Issue'),
         ),
       );
-    } else if (issue.status == 'CLOSED') {
+    } else if (issue.status == 'CLOSED' || issue.status == 'CONFIRMED') {
       buttons.add(
         OutlinedButton.icon(
           icon: const Icon(Icons.replay, size: 18),
@@ -771,6 +832,95 @@ class _IssueDetailScreenState extends State<IssueDetailScreen> with SingleTicker
           ),
         ),
       ],
+    );
+  }
+
+  Widget _buildEvidenceOverviewSection(BuildContext context) {
+    final resolutionProvider = context.watch<ResolutionProvider>();
+    final evidenceList = resolutionProvider.evidenceList;
+
+    if (evidenceList.isEmpty) {
+      return const SizedBox.shrink();
+    }
+
+    return Card(
+      elevation: 1,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      child: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                const Row(
+                  children: [
+                    Icon(Icons.photo_library_outlined, color: AppTheme.primaryBlue, size: 20),
+                    SizedBox(width: 8),
+                    Text(
+                      'Resolution Evidence & Photos',
+                      style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: AppTheme.textDark),
+                    ),
+                  ],
+                ),
+                TextButton(
+                  onPressed: () => setState(() => _selectedTabKey = 'tasks'),
+                  child: const Text('View All in Tasks'),
+                ),
+              ],
+            ),
+            const SizedBox(height: 12),
+            SizedBox(
+              height: 110,
+              child: ListView.separated(
+                scrollDirection: Axis.horizontal,
+                itemCount: evidenceList.length,
+                separatorBuilder: (_, __) => const SizedBox(width: 10),
+                itemBuilder: (ctx, idx) {
+                  final ev = evidenceList[idx];
+                  return Container(
+                    width: 120,
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(10),
+                      border: Border.all(color: Colors.grey.shade300),
+                    ),
+                    clipBehavior: Clip.antiAlias,
+                    child: Stack(
+                      fit: StackFit.expand,
+                      children: [
+                        Image.network(
+                          ev.fileUrl,
+                          fit: BoxFit.cover,
+                          errorBuilder: (_, __, ___) => Container(
+                            color: Colors.grey.shade200,
+                            child: const Center(child: Icon(Icons.broken_image, color: Colors.grey)),
+                          ),
+                        ),
+                        Positioned(
+                          bottom: 0,
+                          left: 0,
+                          right: 0,
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
+                            color: Colors.black87,
+                            child: Text(
+                              ev.notes != null && ev.notes!.isNotEmpty ? ev.notes! : ev.evidenceType.name,
+                              style: const TextStyle(color: Colors.white, fontSize: 10),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  );
+                },
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 

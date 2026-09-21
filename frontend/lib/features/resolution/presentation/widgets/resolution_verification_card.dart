@@ -191,6 +191,80 @@ class _ResolutionVerificationCardState extends State<ResolutionVerificationCard>
             ],
           ),
           const SizedBox(height: 16),
+          if (resolutionProvider.evidenceList.isNotEmpty) ...[
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: Colors.grey.shade50,
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: Colors.grey.shade200),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Row(
+                    children: [
+                      Icon(Icons.photo_library_outlined, size: 16, color: AppTheme.primaryBlue),
+                      SizedBox(width: 6),
+                      Text(
+                        'Operator Work Evidence & Proof Photos:',
+                        style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: AppTheme.textDark),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 8),
+                  SizedBox(
+                    height: 90,
+                    child: ListView.separated(
+                      scrollDirection: Axis.horizontal,
+                      itemCount: resolutionProvider.evidenceList.length,
+                      separatorBuilder: (_, __) => const SizedBox(width: 8),
+                      itemBuilder: (ctx, idx) {
+                        final ev = resolutionProvider.evidenceList[idx];
+                        return Container(
+                          width: 100,
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(8),
+                            border: Border.all(color: Colors.grey.shade300),
+                          ),
+                          clipBehavior: Clip.antiAlias,
+                          child: Stack(
+                            fit: StackFit.expand,
+                            children: [
+                              Image.network(
+                                ev.fileUrl,
+                                fit: BoxFit.cover,
+                                errorBuilder: (_, __, ___) => Container(
+                                  color: Colors.grey.shade200,
+                                  child: const Center(child: Icon(Icons.image, color: Colors.grey)),
+                                ),
+                              ),
+                              Positioned(
+                                bottom: 0,
+                                left: 0,
+                                right: 0,
+                                child: Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
+                                  color: Colors.black54,
+                                  child: Text(
+                                    ev.evidenceType.name,
+                                    style: const TextStyle(color: Colors.white, fontSize: 9),
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        );
+                      },
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 16),
+          ],
           if (_isReopening) ...[
             Container(
               padding: const EdgeInsets.all(16),
