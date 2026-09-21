@@ -6,6 +6,7 @@ import 'package:smart_campus_issue_manager/features/auth/data/models/auth_user_m
 import 'package:smart_campus_issue_manager/features/auth/state/auth_provider.dart';
 import 'package:smart_campus_issue_manager/features/profile/presentation/profile_screen.dart';
 import 'package:smart_campus_issue_manager/features/sla/presentation/widgets/notifications_drawer.dart';
+import 'package:smart_campus_issue_manager/features/analytics/presentation/screens/analytics_dashboard_view.dart';
 import 'views/lead_dashboard_view.dart';
 import 'views/manager_dashboard_view.dart';
 import 'views/operator_dashboard_view.dart';
@@ -50,8 +51,11 @@ class _DashboardShellState extends State<DashboardShell> {
           teams: ['Hostel Block B'],
         );
 
+    final canViewAnalytics = user.role.toUpperCase() != AppConstants.roleStudent;
+
     final pages = [
       _buildRoleHome(user.role),
+      if (canViewAnalytics) const AnalyticsDashboardView(),
       const ProfileScreen(),
     ];
 
@@ -94,13 +98,13 @@ class _DashboardShellState extends State<DashboardShell> {
           child: Container(color: AppTheme.borderSubtle, height: 1),
         ),
       ),
-      body: pages[_currentIndex],
+      body: pages[_currentIndex.clamp(0, pages.length - 1)],
       bottomNavigationBar: Container(
         decoration: const BoxDecoration(
           border: Border(top: BorderSide(color: AppTheme.borderSubtle)),
         ),
         child: NavigationBar(
-          selectedIndex: _currentIndex,
+          selectedIndex: _currentIndex.clamp(0, pages.length - 1),
           onDestinationSelected: (index) {
             setState(() {
               _currentIndex = index;
@@ -108,13 +112,19 @@ class _DashboardShellState extends State<DashboardShell> {
           },
           backgroundColor: AppTheme.surfaceWhite,
           indicatorColor: AppTheme.primaryBlue.withValues(alpha: 0.1),
-          destinations: const [
-            NavigationDestination(
+          destinations: [
+            const NavigationDestination(
               icon: Icon(Icons.dashboard_outlined),
               selectedIcon: Icon(Icons.dashboard_rounded, color: AppTheme.primaryBlue),
               label: 'Workspace',
             ),
-            NavigationDestination(
+            if (canViewAnalytics)
+              const NavigationDestination(
+                icon: Icon(Icons.analytics_outlined),
+                selectedIcon: Icon(Icons.analytics_rounded, color: AppTheme.primaryBlue),
+                label: 'Analytics',
+              ),
+            const NavigationDestination(
               icon: Icon(Icons.person_outline_rounded),
               selectedIcon: Icon(Icons.person_rounded, color: AppTheme.primaryBlue),
               label: 'Profile',

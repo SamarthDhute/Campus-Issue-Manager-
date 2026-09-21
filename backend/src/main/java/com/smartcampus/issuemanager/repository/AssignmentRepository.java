@@ -16,4 +16,6 @@ public interface AssignmentRepository extends JpaRepository<Assignment, UUID> {
     Optional<Assignment> findByIssueIdAndEndedAtIsNull(UUID issueId);
 
     List<Assignment> findByUserIdAndEndedAtIsNull(UUID userId);
+
+    List<Assignment> findByUserId(UUID userId);
 }
