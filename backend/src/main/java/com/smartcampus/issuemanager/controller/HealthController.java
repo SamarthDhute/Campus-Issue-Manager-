@@ -5,18 +5,16 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.time.OffsetDateTime;
 
 @RestController
-@RequestMapping("/api/v1/health")
-@Tag(name = "Health", description = "System health check endpoint")
+@Tag(name = "Health", description = "System health check and welcome endpoints")
 public class HealthController {
 
-    @GetMapping
-    @Operation(summary = "Service Health Check", description = "Returns operational status and metadata of the application service")
+    @GetMapping(value = {"/", "/api/v1/health", "/health"})
+    @Operation(summary = "Service Health & Info", description = "Returns operational status and metadata of the application service")
     public ResponseEntity<HealthResponse> checkHealth() {
         HealthResponse response = HealthResponse.builder()
             .status("UP")

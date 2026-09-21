@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../../../../core/theme/app_theme.dart';
-import '../../issues/data/models/issue_model.dart';
-import '../../operations/state/operations_provider.dart';
+import 'package:smart_campus_issue_manager/core/theme/app_theme.dart';
+import 'package:smart_campus_issue_manager/features/issues/data/models/issue_model.dart';
+import 'package:smart_campus_issue_manager/features/operations/state/operations_provider.dart';
 
 class InternalNotesWidget extends StatefulWidget {
   final IssueModel issue;

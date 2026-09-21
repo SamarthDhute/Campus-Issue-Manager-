@@ -5,6 +5,7 @@ import 'package:smart_campus_issue_manager/core/theme/app_theme.dart';
 import 'package:smart_campus_issue_manager/features/auth/data/models/auth_user_model.dart';
 import 'package:smart_campus_issue_manager/features/auth/state/auth_provider.dart';
 import 'package:smart_campus_issue_manager/features/profile/presentation/profile_screen.dart';
+import 'package:smart_campus_issue_manager/features/sla/presentation/widgets/notifications_drawer.dart';
 import 'views/lead_dashboard_view.dart';
 import 'views/manager_dashboard_view.dart';
 import 'views/operator_dashboard_view.dart';
@@ -55,6 +56,7 @@ class _DashboardShellState extends State<DashboardShell> {
     ];
 
     return Scaffold(
+      endDrawer: const NotificationsDrawer(),
       appBar: AppBar(
         title: Row(
           children: [
@@ -74,6 +76,8 @@ class _DashboardShellState extends State<DashboardShell> {
           ],
         ),
         actions: [
+          const NotificationBellAction(),
+          const SizedBox(width: 4),
           Padding(
             padding: const EdgeInsets.only(right: 8.0),
             child: RoleBadge(role: user.role),

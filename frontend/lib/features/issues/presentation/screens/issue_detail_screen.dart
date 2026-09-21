@@ -11,6 +11,10 @@ import '../../../operations/presentation/widgets/tasks_checklist_widget.dart';
 import '../../../operations/presentation/widgets/investigation_log_widget.dart';
 import '../../../operations/presentation/widgets/internal_notes_widget.dart';
 import '../../../operations/presentation/widgets/requester_chat_widget.dart';
+import '../../../sla/presentation/state/sla_provider.dart';
+import '../../../sla/presentation/widgets/sla_countdown_card.dart';
+import '../../../sla/presentation/widgets/risk_signals_card.dart';
+import '../../../sla/presentation/widgets/escalation_banner_widget.dart';
 import '../widgets/ai_case_intelligence_card.dart';
 import '../widgets/priority_chip.dart';
 import '../widgets/status_chip.dart';
@@ -34,6 +38,7 @@ class _IssueDetailScreenState extends State<IssueDetailScreen> with SingleTicker
       context.read<IssueProvider>().loadIssueDetails(widget.issueId);
       final userRole = context.read<AuthProvider>().user?.role.toUpperCase() ?? 'STUDENT';
       context.read<OperationsProvider>().loadOperationsData(widget.issueId, isStaff: userRole != 'STUDENT');
+      context.read<SlaProvider>().loadSlaData(widget.issueId);
     });
   }
 
@@ -223,6 +228,7 @@ class _IssueDetailScreenState extends State<IssueDetailScreen> with SingleTicker
                     await issueProvider.loadIssueDetails(widget.issueId);
                     if (mounted) {
                       await context.read<OperationsProvider>().loadOperationsData(widget.issueId, isStaff: userRole != 'STUDENT');
+                      await context.read<SlaProvider>().loadSlaData(widget.issueId);
                     }
                   },
                   child: SingleChildScrollView(
@@ -259,9 +265,8 @@ class _IssueDetailScreenState extends State<IssueDetailScreen> with SingleTicker
     return Container(
       padding: const EdgeInsets.all(4),
       decoration: BoxDecoration(
-        color: AppTheme.surfaceWhite,
+        color: AppTheme.borderSubtle.withOpacity(0.5),
         borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: AppTheme.borderSubtle),
       ),
       child: SingleChildScrollView(
         scrollDirection: Axis.horizontal,
@@ -274,7 +279,7 @@ class _IssueDetailScreenState extends State<IssueDetailScreen> with SingleTicker
                 onTap: () => setState(() => _selectedTabIndex = index),
                 borderRadius: BorderRadius.circular(8),
                 child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
                   decoration: BoxDecoration(
                     color: isSelected ? AppTheme.primaryBlue : Colors.transparent,
                     borderRadius: BorderRadius.circular(8),
@@ -285,7 +290,7 @@ class _IssueDetailScreenState extends State<IssueDetailScreen> with SingleTicker
                       Icon(
                         tabs[index]['icon'] as IconData,
                         size: 16,
-                        color: isSelected ? Colors.white : AppTheme.textMuted,
+                        color: isSelected ? Colors.white : AppTheme.textDark,
                       ),
                       const SizedBox(width: 6),
                       Text(
@@ -315,6 +320,10 @@ class _IssueDetailScreenState extends State<IssueDetailScreen> with SingleTicker
       return Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          EscalationBannerWidget(issueId: issue.id, issueNumber: issue.issueNumber),
+          SlaCountdownCard(issueId: issue.id),
+          RiskSignalsCard(issueId: issue.id),
+          const SizedBox(height: 16),
           AiCaseIntelligenceCard(issue: issue),
           _buildActionToolbar(context, issue, userRole),
           const SizedBox(height: 16),
