@@ -3,6 +3,8 @@ package com.smartcampus.issuemanager.entity;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 
 import java.time.OffsetDateTime;
 import java.util.UUID;
@@ -34,7 +36,8 @@ public class SecurityEvent {
     @Builder.Default
     private String severity = "INFO";
 
-    @Column(name = "metadata", columnDefinition = "JSONB")
+    @JdbcTypeCode(SqlTypes.JSON)
+    @Column(name = "metadata", columnDefinition = "jsonb")
     private String metadata;
 
     @Column(name = "ip_address", length = 45)

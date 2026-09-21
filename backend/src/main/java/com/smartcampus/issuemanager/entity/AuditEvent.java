@@ -3,6 +3,8 @@ package com.smartcampus.issuemanager.entity;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 
 import java.time.OffsetDateTime;
 import java.util.UUID;
@@ -42,13 +44,16 @@ public class AuditEvent {
     @Column(name = "action_summary", columnDefinition = "TEXT")
     private String actionSummary;
 
-    @Column(name = "before_data", columnDefinition = "JSONB")
+    @JdbcTypeCode(SqlTypes.JSON)
+    @Column(name = "before_data", columnDefinition = "jsonb")
     private String beforeData;
 
-    @Column(name = "after_data", columnDefinition = "JSONB")
+    @JdbcTypeCode(SqlTypes.JSON)
+    @Column(name = "after_data", columnDefinition = "jsonb")
     private String afterData;
 
-    @Column(name = "metadata", columnDefinition = "JSONB")
+    @JdbcTypeCode(SqlTypes.JSON)
+    @Column(name = "metadata", columnDefinition = "jsonb")
     private String metadata;
 
     @Column(name = "ip_address", length = 45)
